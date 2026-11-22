@@ -2,18 +2,26 @@
 <html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sea Paradise Team</title>
 <style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#1f4d45}</style></head>
-<body><div id="m">กำลังเข้าสู่ระบบผ่าน LINE…</div>
+<body><div id="m" style="text-align:center;padding:0 24px">กำลังเข้าสู่ระบบผ่าน LINE…</div>
 <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 <script>
 // ===== แก้ 2 ค่านี้ =====
 var LIFF_ID = '2012605168-K5RRWnPY';
 var APP_URL = 'https://script.google.com/macros/s/AKfycbz4ERWvuKMal8m3K6qmgnT3nFRags97IbvI-s-vYGdDcZa7ChVkPKlUZBj2hKA5xYXYmw/exec';
+var EXTERNAL = true;   // true = เปิดในเบราว์เซอร์ของมือถือ (กล้อง/GPS ใช้ได้) · false = เปิดในแอป LINE
 // =======================
 function fail(t){document.getElementById('m').innerHTML='เปิดผ่าน LINE ไม่สำเร็จ: '+t+'<br><br><a href="'+APP_URL+'">เข้าสู่ระบบด้วยรหัสพนักงาน</a>';}
 liff.init({liffId:LIFF_ID}).then(function(){
   if(!liff.isLoggedIn()){liff.login({redirectUri:location.href});return;}
   var t=liff.getIDToken();
   if(!t){fail('ไม่ได้รับ ID token (ตรวจ Scopes ต้องติ๊ก openid)');return;}
-  location.replace(APP_URL+'?idt='+encodeURIComponent(t));
+  var go=APP_URL+'?idt='+encodeURIComponent(t);
+  // ในแอป LINE กล้อง/GPS มักถูกบล็อก → เปิดระบบในเบราว์เซอร์ของมือถือ (Chrome/Safari) โดยยืนยันตัวตนด้วยบัญชี LINE ให้อัตโนมัติ
+  if(liff.isInClient()&&EXTERNAL){
+    liff.openWindow({url:go,external:true});
+    document.getElementById('m').innerHTML='เปิดระบบในเบราว์เซอร์แล้ว<br><br><button style="padding:12px 20px;font-size:16px" onclick="liff.closeWindow()">ปิดหน้านี้</button><br><br><a href="'+go+'">ถ้าไม่เปิด กดที่นี่</a>';
+    return;
+  }
+  location.replace(go);
 }).catch(function(e){fail(e&&e.message?e.message:'LIFF');});
 </script></body></html>

@@ -7,8 +7,8 @@
 <script>
 // ===== แก้ 2 ค่านี้ =====
 var LIFF_ID = '2012605168-K5RRWnPY';
-var APP_URL = 'https://script.google.com/macros/s/AKfycbz4ERWvuKMal8m3K6qmgnT3nFRags97IbvI-s-vYGdDcZa7ChVkPKlUZBj2hKA5xYXYmw/exec';
-var EXTERNAL = true;   // true = เปิดในเบราว์เซอร์ของมือถือ (กล้อง/GPS ใช้ได้) · false = เปิดในแอป LINE
+var APP_URL = 'https://nediya123.github.io/HR/app.html';
+var EXTERNAL = false;   // true = เปิดในเบราว์เซอร์ของมือถือ (กล้อง/GPS ใช้ได้) · false = เปิดในแอป LINE
 // =======================
 function fail(t){document.getElementById('m').innerHTML='เปิดผ่าน LINE ไม่สำเร็จ: '+t+'<br><br><a href="'+APP_URL+'">เข้าสู่ระบบด้วยรหัสพนักงาน</a>';}
 liff.init({liffId:LIFF_ID}).then(function(){

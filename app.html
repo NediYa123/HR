@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<base target="_top">
+<meta charset="utf-8">
+<title>Sea Paradise Team</title>
+<style>
+:root{--bg:#f4f5f1;--card:#fff;--ink:#1d2b27;--mut:#667570;--line:#dfe3dc;--pri:#1f4d45;--pri2:#e7efe9;--bad:#b3261e;--warn:#b26a00;--ok:#1b7a43;--info:#1a5fb4}
+@media (prefers-color-scheme:dark){:root{--bg:#121816;--card:#1b2420;--ink:#e8eeea;--mut:#9aa8a1;--line:#2c3a34;--pri:#6fc3a8;--pri2:#223b33;--bad:#ff8a80;--warn:#ffb74d;--ok:#6fd49a;--info:#82b1ff}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Sarabun","Noto Sans Thai",system-ui,sans-serif}
+header{display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--card);border-bottom:1px solid var(--line);position:sticky;top:0;z-index:5}
+header b{font-size:16px}header small{color:var(--mut)}header .sp{flex:1}
+nav{display:flex;gap:6px;padding:8px 16px;overflow-x:auto;background:var(--card);border-bottom:1px solid var(--line)}
+nav button{white-space:nowrap}
+main{padding:16px;max-width:1100px;margin:auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px;margin-bottom:14px}
+h2{margin:0 0 10px;font-size:18px}h3{margin:14px 0 8px;font-size:15px}
+button,.btn{font:inherit;padding:9px 14px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:var(--ink);cursor:pointer}
+button.pri{background:var(--pri);color:#fff;border-color:var(--pri)}
+@media (prefers-color-scheme:dark){button.pri{color:#10201a}}
+button.tab.on{background:var(--pri2);border-color:var(--pri);font-weight:600}
+button.bad{color:var(--bad)}button:disabled{opacity:.5;cursor:not-allowed}
+input,select,textarea{font:inherit;padding:8px 10px;border:1px solid var(--line);border-radius:8px;background:var(--card);color:var(--ink);max-width:100%}
+label{display:block;font-size:13px;color:var(--mut);margin:8px 0 3px}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}.row>*{flex:1;min-width:140px}
+.big{font-size:34px;font-weight:700}.mut{color:var(--mut)}.sm{font-size:13px}
+.chip{display:inline-block;padding:2px 9px;border-radius:99px;font-size:12px;background:var(--pri2);color:var(--pri);white-space:nowrap}
+.chip.ok{background:#e0f3e8;color:var(--ok)}.chip.late,.chip.early,.chip.working,.chip.waiting{background:#fff1dc;color:var(--warn)}
+.chip.review{background:#fff1dc;color:var(--warn)}.chip.extra{background:#e0f3e8;color:var(--ok)}.chip.rejected{background:#eee;color:var(--mut)}
+.chip.absent,.chip.missing_out{background:#fde3e1;color:var(--bad)}.chip.leave{background:#e3edfb;color:var(--info)}
+@media (prefers-color-scheme:dark){.chip.ok{background:#1f3a2b}.chip.late,.chip.early,.chip.working,.chip.waiting{background:#3d3220}.chip.absent,.chip.missing_out{background:#43211f}.chip.leave{background:#1f2f47}}
+table{border-collapse:collapse;width:100%}th,td{padding:7px 8px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top;font-size:14px}
+th{font-size:12px;color:var(--mut);font-weight:600;white-space:nowrap}
+.gridbox{max-height:calc(100vh - 150px)!important}.brush{position:sticky;top:54px;z-index:5;background:var(--card);padding:6px 0}
+.scroll{overflow:auto;max-height:70vh;border:1px solid var(--line);border-radius:8px}
+.grid th,.grid td{padding:0;text-align:center;border:1px solid var(--line);min-width:30px;font-size:12px}
+.grid td.name,.grid th.name{position:sticky;left:0;background:var(--card);min-width:130px;text-align:left;padding:4px 8px;z-index:2;cursor:pointer}
+.grid td.c{height:30px;cursor:pointer;user-select:none}.grid td.c.chg{outline:2px solid var(--info);outline-offset:-2px}
+.grid th.hol{background:#fde3e1;color:var(--bad)}.grid th.sun{color:var(--bad)}.grid th{cursor:pointer;position:sticky;top:0;background:var(--card);z-index:1}
+.grid td.hol{background:rgba(179,38,30,.06)}
+.sh-M{background:#dff1e6}.sh-A{background:#fff1d6}.sh-N{background:#dfe3f7}.sh-D{background:#ece5f5}.sh-x{background:#eee}.sh-OFF{background:#fde3e1;color:var(--bad)}
+@media (prefers-color-scheme:dark){.sh-OFF{background:#4a2421}.sh-M{background:#1f3a2b}.sh-A{background:#3d3220}.sh-N{background:#252b45}.sh-D{background:#2f2840}.sh-x{background:#2a2f2d}}
+.brush button.on{outline:3px solid var(--pri)}
+.cov-ok{color:var(--ok)}.cov-bad{color:var(--bad);font-weight:700}
+#toast{position:fixed;bottom:16px;left:50%;transform:translateX(-50%);background:#222;color:#fff;padding:10px 16px;border-radius:8px;display:none;z-index:99;max-width:90vw}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:none;align-items:flex-start;justify-content:center;padding:20px;overflow:auto;z-index:50}
+.modal>div{background:var(--card);border-radius:12px;padding:18px;width:100%;max-width:520px}
+.hidden{display:none!important}
+.kpi{display:grid;grid-template-columns:1fr 90px;gap:8px;align-items:center;margin:6px 0}
+img.pv{max-width:100%;border-radius:10px;margin-top:8px}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div id="toast"></div>
+<div class="modal" id="modal"><div id="modalBody"></div></div>
+<script>/* QR Code Generator (c) 2009 Kazuhiko Arase, MIT license */
+var qrcode=function(){var t=function(t,r){var e=t,n=g[r],o=null,i=0,a=null,u=[],f={},c=function(t,r){o=function(t){for(var r=new Array(t),e=0;e<t;e+=1){r[e]=new Array(t);for(var n=0;n<t;n+=1)r[e][n]=null}return r}(i=4*e+17),l(0,0),l(i-7,0),l(0,i-7),s(),h(),d(t,r),e>=7&&v(t),null==a&&(a=p(e,n,u)),w(a,r)},l=function(t,r){for(var e=-1;e<=7;e+=1)if(!(t+e<=-1||i<=t+e))for(var n=-1;n<=7;n+=1)r+n<=-1||i<=r+n||(o[t+e][r+n]=0<=e&&e<=6&&(0==n||6==n)||0<=n&&n<=6&&(0==e||6==e)||2<=e&&e<=4&&2<=n&&n<=4)},h=function(){for(var t=8;t<i-8;t+=1)null==o[t][6]&&(o[t][6]=t%2==0);for(var r=8;r<i-8;r+=1)null==o[6][r]&&(o[6][r]=r%2==0)},s=function(){for(var t=B.getPatternPosition(e),r=0;r<t.length;r+=1)for(var n=0;n<t.length;n+=1){var i=t[r],a=t[n];if(null==o[i][a])for(var u=-2;u<=2;u+=1)for(var f=-2;f<=2;f+=1)o[i+u][a+f]=-2==u||2==u||-2==f||2==f||0==u&&0==f}},v=function(t){for(var r=B.getBCHTypeNumber(e),n=0;n<18;n+=1){var a=!t&&1==(r>>n&1);o[Math.floor(n/3)][n%3+i-8-3]=a}for(n=0;n<18;n+=1){a=!t&&1==(r>>n&1);o[n%3+i-8-3][Math.floor(n/3)]=a}},d=function(t,r){for(var e=n<<3|r,a=B.getBCHTypeInfo(e),u=0;u<15;u+=1){var f=!t&&1==(a>>u&1);u<6?o[u][8]=f:u<8?o[u+1][8]=f:o[i-15+u][8]=f}for(u=0;u<15;u+=1){f=!t&&1==(a>>u&1);u<8?o[8][i-u-1]=f:u<9?o[8][15-u-1+1]=f:o[8][15-u-1]=f}o[i-8][8]=!t},w=function(t,r){for(var e=-1,n=i-1,a=7,u=0,f=B.getMaskFunction(r),c=i-1;c>0;c-=2)for(6==c&&(c-=1);;){for(var g=0;g<2;g+=1)if(null==o[n][c-g]){var l=!1;u<t.length&&(l=1==(t[u]>>>a&1)),f(n,c-g)&&(l=!l),o[n][c-g]=l,-1==(a-=1)&&(u+=1,a=7)}if((n+=e)<0||i<=n){n-=e,e=-e;break}}},p=function(t,r,e){for(var n=A.getRSBlocks(t,r),o=b(),i=0;i<e.length;i+=1){var a=e[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var u=0;for(i=0;i<n.length;i+=1)u+=n[i].dataCount;if(o.getLengthInBits()>8*u)throw"code length overflow. ("+o.getLengthInBits()+">"+8*u+")";for(o.getLengthInBits()+4<=8*u&&o.put(0,4);o.getLengthInBits()%8!=0;)o.putBit(!1);for(;!(o.getLengthInBits()>=8*u||(o.put(236,8),o.getLengthInBits()>=8*u));)o.put(17,8);return function(t,r){for(var e=0,n=0,o=0,i=new Array(r.length),a=new Array(r.length),u=0;u<r.length;u+=1){var f=r[u].dataCount,c=r[u].totalCount-f;n=Math.max(n,f),o=Math.max(o,c),i[u]=new Array(f);for(var g=0;g<i[u].length;g+=1)i[u][g]=255&t.getBuffer()[g+e];e+=f;var l=B.getErrorCorrectPolynomial(c),h=k(i[u],l.getLength()-1).mod(l);for(a[u]=new Array(l.getLength()-1),g=0;g<a[u].length;g+=1){var s=g+h.getLength()-a[u].length;a[u][g]=s>=0?h.getAt(s):0}}var v=0;for(g=0;g<r.length;g+=1)v+=r[g].totalCount;var d=new Array(v),w=0;for(g=0;g<n;g+=1)for(u=0;u<r.length;u+=1)g<i[u].length&&(d[w]=i[u][g],w+=1);for(g=0;g<o;g+=1)for(u=0;u<r.length;u+=1)g<a[u].length&&(d[w]=a[u][g],w+=1);return d}(o,n)};f.addData=function(t,r){var e=null;switch(r=r||"Byte"){case"Numeric":e=M(t);break;case"Alphanumeric":e=x(t);break;case"Byte":e=m(t);break;case"Kanji":e=L(t);break;default:throw"mode:"+r}u.push(e),a=null},f.isDark=function(t,r){if(t<0||i<=t||r<0||i<=r)throw t+","+r;return o[t][r]},f.getModuleCount=function(){return i},f.make=function(){if(e<1){for(var t=1;t<40;t++){for(var r=A.getRSBlocks(t,n),o=b(),i=0;i<u.length;i++){var a=u[i];o.put(a.getMode(),4),o.put(a.getLength(),B.getLengthInBits(a.getMode(),t)),a.write(o)}var g=0;for(i=0;i<r.length;i++)g+=r[i].dataCount;if(o.getLengthInBits()<=8*g)break}e=t}c(!1,function(){for(var t=0,r=0,e=0;e<8;e+=1){c(!0,e);var n=B.getLostPoint(f);(0==e||t>n)&&(t=n,r=e)}return r}())},f.createTableTag=function(t,r){t=t||2;var e="";e+='<table style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: "+(r=void 0===r?4*t:r)+"px;",e+='">',e+="<tbody>";for(var n=0;n<f.getModuleCount();n+=1){e+="<tr>";for(var o=0;o<f.getModuleCount();o+=1)e+='<td style="',e+=" border-width: 0px; border-style: none;",e+=" border-collapse: collapse;",e+=" padding: 0px; margin: 0px;",e+=" width: "+t+"px;",e+=" height: "+t+"px;",e+=" background-color: ",e+=f.isDark(n,o)?"#000000":"#ffffff",e+=";",e+='"/>';e+="</tr>"}return e+="</tbody>",e+="</table>"},f.createSvgTag=function(t,r,e,n){var o={};"object"==typeof arguments[0]&&(t=(o=arguments[0]).cellSize,r=o.margin,e=o.alt,n=o.title),t=t||2,r=void 0===r?4*t:r,(e="string"==typeof e?{text:e}:e||{}).text=e.text||null,e.id=e.text?e.id||"qrcode-description":null,(n="string"==typeof n?{text:n}:n||{}).text=n.text||null,n.id=n.text?n.id||"qrcode-title":null;var i,a,u,c,g=f.getModuleCount()*t+2*r,l="";for(c="l"+t+",0 0,"+t+" -"+t+",0 0,-"+t+"z ",l+='<svg version="1.1" xmlns="http://www.w3.org/2000/svg"',l+=o.scalable?"":' width="'+g+'px" height="'+g+'px"',l+=' viewBox="0 0 '+g+" "+g+'" ',l+=' preserveAspectRatio="xMinYMin meet"',l+=n.text||e.text?' role="img" aria-labelledby="'+y([n.id,e.id].join(" ").trim())+'"':"",l+=">",l+=n.text?'<title id="'+y(n.id)+'">'+y(n.text)+"</title>":"",l+=e.text?'<description id="'+y(e.id)+'">'+y(e.text)+"</description>":"",l+='<rect width="100%" height="100%" fill="white" cx="0" cy="0"/>',l+='<path d="',a=0;a<f.getModuleCount();a+=1)for(u=a*t+r,i=0;i<f.getModuleCount();i+=1)f.isDark(a,i)&&(l+="M"+(i*t+r)+","+u+c);return l+='" stroke="transparent" fill="black"/>',l+="</svg>"},f.createDataURL=function(t,r){t=t||2,r=void 0===r?4*t:r;var e=f.getModuleCount()*t+2*r,n=r,o=e-r;return I(e,e,function(r,e){if(n<=r&&r<o&&n<=e&&e<o){var i=Math.floor((r-n)/t),a=Math.floor((e-n)/t);return f.isDark(a,i)?0:1}return 1})},f.createImgTag=function(t,r,e){t=t||2,r=void 0===r?4*t:r;var n=f.getModuleCount()*t+2*r,o="";return o+="<img",o+=' src="',o+=f.createDataURL(t,r),o+='"',o+=' width="',o+=n,o+='"',o+=' height="',o+=n,o+='"',e&&(o+=' alt="',o+=y(e),o+='"'),o+="/>"};var y=function(t){for(var r="",e=0;e<t.length;e+=1){var n=t.charAt(e);switch(n){case"<":r+="&lt;";break;case">":r+="&gt;";break;case"&":r+="&amp;";break;case'"':r+="&quot;";break;default:r+=n}}return r};return f.createASCII=function(t,r){if((t=t||1)<2)return function(t){t=void 0===t?2:t;var r,e,n,o,i,a=1*f.getModuleCount()+2*t,u=t,c=a-t,g={"██":"█","█ ":"▀"," █":"▄","  ":" "},l={"██":"▀","█ ":"▀"," █":" ","  ":" "},h="";for(r=0;r<a;r+=2){for(n=Math.floor((r-u)/1),o=Math.floor((r+1-u)/1),e=0;e<a;e+=1)i="█",u<=e&&e<c&&u<=r&&r<c&&f.isDark(n,Math.floor((e-u)/1))&&(i=" "),u<=e&&e<c&&u<=r+1&&r+1<c&&f.isDark(o,Math.floor((e-u)/1))?i+=" ":i+="█",h+=t<1&&r+1>=c?l[i]:g[i];h+="\n"}return a%2&&t>0?h.substring(0,h.length-a-1)+Array(a+1).join("▀"):h.substring(0,h.length-1)}(r);t-=1,r=void 0===r?2*t:r;var e,n,o,i,a=f.getModuleCount()*t+2*r,u=r,c=a-r,g=Array(t+1).join("██"),l=Array(t+1).join("  "),h="",s="";for(e=0;e<a;e+=1){for(o=Math.floor((e-u)/t),s="",n=0;n<a;n+=1)i=1,u<=n&&n<c&&u<=e&&e<c&&f.isDark(o,Math.floor((n-u)/t))&&(i=0),s+=i?g:l;for(o=0;o<t;o+=1)h+=s+"\n"}return h.substring(0,h.length-1)},f.renderTo2dContext=function(t,r){r=r||2;for(var e=f.getModuleCount(),n=0;n<e;n++)for(var o=0;o<e;o++)t.fillStyle=f.isDark(n,o)?"black":"white",t.fillRect(o*r,n*r,r,r)},f};t.stringToBytes=(t.stringToBytesFuncs={default:function(t){for(var r=[],e=0;e<t.length;e+=1){var n=t.charCodeAt(e);r.push(255&n)}return r}}).default,t.createStringToBytes=function(t,r){var e=function(){for(var e=S(t),n=function(){var t=e.read();if(-1==t)throw"eof";return t},o=0,i={};;){var a=e.read();if(-1==a)break;var u=n(),f=n()<<8|n();i[String.fromCharCode(a<<8|u)]=f,o+=1}if(o!=r)throw o+" != "+r;return i}(),n="?".charCodeAt(0);return function(t){for(var r=[],o=0;o<t.length;o+=1){var i=t.charCodeAt(o);if(i<128)r.push(i);else{var a=e[t.charAt(o)];"number"==typeof a?(255&a)==a?r.push(a):(r.push(a>>>8),r.push(255&a)):r.push(n)}}return r}};var r,e,n,o,i,a=1,u=2,f=4,c=8,g={L:1,M:0,Q:3,H:2},l=0,h=1,s=2,v=3,d=4,w=5,p=6,y=7,B=(r=[[],[6,18],[6,22],[6,26],[6,30],[6,34],[6,22,38],[6,24,42],[6,26,46],[6,28,50],[6,30,54],[6,32,58],[6,34,62],[6,26,46,66],[6,26,48,70],[6,26,50,74],[6,30,54,78],[6,30,56,82],[6,30,58,86],[6,34,62,90],[6,28,50,72,94],[6,26,50,74,98],[6,30,54,78,102],[6,28,54,80,106],[6,32,58,84,110],[6,30,58,86,114],[6,34,62,90,118],[6,26,50,74,98,122],[6,30,54,78,102,126],[6,26,52,78,104,130],[6,30,56,82,108,134],[6,34,60,86,112,138],[6,30,58,86,114,142],[6,34,62,90,118,146],[6,30,54,78,102,126,150],[6,24,50,76,102,128,154],[6,28,54,80,106,132,158],[6,32,58,84,110,136,162],[6,26,54,82,110,138,166],[6,30,58,86,114,142,170]],e=1335,n=7973,i=function(t){for(var r=0;0!=t;)r+=1,t>>>=1;return r},(o={}).getBCHTypeInfo=function(t){for(var r=t<<10;i(r)-i(e)>=0;)r^=e<<i(r)-i(e);return 21522^(t<<10|r)},o.getBCHTypeNumber=function(t){for(var r=t<<12;i(r)-i(n)>=0;)r^=n<<i(r)-i(n);return t<<12|r},o.getPatternPosition=function(t){return r[t-1]},o.getMaskFunction=function(t){switch(t){case l:return function(t,r){return(t+r)%2==0};case h:return function(t,r){return t%2==0};case s:return function(t,r){return r%3==0};case v:return function(t,r){return(t+r)%3==0};case d:return function(t,r){return(Math.floor(t/2)+Math.floor(r/3))%2==0};case w:return function(t,r){return t*r%2+t*r%3==0};case p:return function(t,r){return(t*r%2+t*r%3)%2==0};case y:return function(t,r){return(t*r%3+(t+r)%2)%2==0};default:throw"bad maskPattern:"+t}},o.getErrorCorrectPolynomial=function(t){for(var r=k([1],0),e=0;e<t;e+=1)r=r.multiply(k([1,C.gexp(e)],0));return r},o.getLengthInBits=function(t,r){if(1<=r&&r<10)switch(t){case a:return 10;case u:return 9;case f:case c:return 8;default:throw"mode:"+t}else if(r<27)switch(t){case a:return 12;case u:return 11;case f:return 16;case c:return 10;default:throw"mode:"+t}else{if(!(r<41))throw"type:"+r;switch(t){case a:return 14;case u:return 13;case f:return 16;case c:return 12;default:throw"mode:"+t}}},o.getLostPoint=function(t){for(var r=t.getModuleCount(),e=0,n=0;n<r;n+=1)for(var o=0;o<r;o+=1){for(var i=0,a=t.isDark(n,o),u=-1;u<=1;u+=1)if(!(n+u<0||r<=n+u))for(var f=-1;f<=1;f+=1)o+f<0||r<=o+f||0==u&&0==f||a==t.isDark(n+u,o+f)&&(i+=1);i>5&&(e+=3+i-5)}for(n=0;n<r-1;n+=1)for(o=0;o<r-1;o+=1){var c=0;t.isDark(n,o)&&(c+=1),t.isDark(n+1,o)&&(c+=1),t.isDark(n,o+1)&&(c+=1),t.isDark(n+1,o+1)&&(c+=1),0!=c&&4!=c||(e+=3)}for(n=0;n<r;n+=1)for(o=0;o<r-6;o+=1)t.isDark(n,o)&&!t.isDark(n,o+1)&&t.isDark(n,o+2)&&t.isDark(n,o+3)&&t.isDark(n,o+4)&&!t.isDark(n,o+5)&&t.isDark(n,o+6)&&(e+=40);for(o=0;o<r;o+=1)for(n=0;n<r-6;n+=1)t.isDark(n,o)&&!t.isDark(n+1,o)&&t.isDark(n+2,o)&&t.isDark(n+3,o)&&t.isDark(n+4,o)&&!t.isDark(n+5,o)&&t.isDark(n+6,o)&&(e+=40);var g=0;for(o=0;o<r;o+=1)for(n=0;n<r;n+=1)t.isDark(n,o)&&(g+=1);return e+=Math.abs(100*g/r/r-50)/5*10},o),C=function(){for(var t=new Array(256),r=new Array(256),e=0;e<8;e+=1)t[e]=1<<e;for(e=8;e<256;e+=1)t[e]=t[e-4]^t[e-5]^t[e-6]^t[e-8];for(e=0;e<255;e+=1)r[t[e]]=e;var n={glog:function(t){if(t<1)throw"glog("+t+")";return r[t]},gexp:function(r){for(;r<0;)r+=255;for(;r>=256;)r-=255;return t[r]}};return n}();function k(t,r){if(void 0===t.length)throw t.length+"/"+r;var e=function(){for(var e=0;e<t.length&&0==t[e];)e+=1;for(var n=new Array(t.length-e+r),o=0;o<t.length-e;o+=1)n[o]=t[o+e];return n}(),n={getAt:function(t){return e[t]},getLength:function(){return e.length},multiply:function(t){for(var r=new Array(n.getLength()+t.getLength()-1),e=0;e<n.getLength();e+=1)for(var o=0;o<t.getLength();o+=1)r[e+o]^=C.gexp(C.glog(n.getAt(e))+C.glog(t.getAt(o)));return k(r,0)},mod:function(t){if(n.getLength()-t.getLength()<0)return n;for(var r=C.glog(n.getAt(0))-C.glog(t.getAt(0)),e=new Array(n.getLength()),o=0;o<n.getLength();o+=1)e[o]=n.getAt(o);for(o=0;o<t.getLength();o+=1)e[o]^=C.gexp(C.glog(t.getAt(o))+r);return k(e,0).mod(t)}};return n}var A=function(){var t=[[1,26,19],[1,26,16],[1,26,13],[1,26,9],[1,44,34],[1,44,28],[1,44,22],[1,44,16],[1,70,55],[1,70,44],[2,35,17],[2,35,13],[1,100,80],[2,50,32],[2,50,24],[4,25,9],[1,134,108],[2,67,43],[2,33,15,2,34,16],[2,33,11,2,34,12],[2,86,68],[4,43,27],[4,43,19],[4,43,15],[2,98,78],[4,49,31],[2,32,14,4,33,15],[4,39,13,1,40,14],[2,121,97],[2,60,38,2,61,39],[4,40,18,2,41,19],[4,40,14,2,41,15],[2,146,116],[3,58,36,2,59,37],[4,36,16,4,37,17],[4,36,12,4,37,13],[2,86,68,2,87,69],[4,69,43,1,70,44],[6,43,19,2,44,20],[6,43,15,2,44,16],[4,101,81],[1,80,50,4,81,51],[4,50,22,4,51,23],[3,36,12,8,37,13],[2,116,92,2,117,93],[6,58,36,2,59,37],[4,46,20,6,47,21],[7,42,14,4,43,15],[4,133,107],[8,59,37,1,60,38],[8,44,20,4,45,21],[12,33,11,4,34,12],[3,145,115,1,146,116],[4,64,40,5,65,41],[11,36,16,5,37,17],[11,36,12,5,37,13],[5,109,87,1,110,88],[5,65,41,5,66,42],[5,54,24,7,55,25],[11,36,12,7,37,13],[5,122,98,1,123,99],[7,73,45,3,74,46],[15,43,19,2,44,20],[3,45,15,13,46,16],[1,135,107,5,136,108],[10,74,46,1,75,47],[1,50,22,15,51,23],[2,42,14,17,43,15],[5,150,120,1,151,121],[9,69,43,4,70,44],[17,50,22,1,51,23],[2,42,14,19,43,15],[3,141,113,4,142,114],[3,70,44,11,71,45],[17,47,21,4,48,22],[9,39,13,16,40,14],[3,135,107,5,136,108],[3,67,41,13,68,42],[15,54,24,5,55,25],[15,43,15,10,44,16],[4,144,116,4,145,117],[17,68,42],[17,50,22,6,51,23],[19,46,16,6,47,17],[2,139,111,7,140,112],[17,74,46],[7,54,24,16,55,25],[34,37,13],[4,151,121,5,152,122],[4,75,47,14,76,48],[11,54,24,14,55,25],[16,45,15,14,46,16],[6,147,117,4,148,118],[6,73,45,14,74,46],[11,54,24,16,55,25],[30,46,16,2,47,17],[8,132,106,4,133,107],[8,75,47,13,76,48],[7,54,24,22,55,25],[22,45,15,13,46,16],[10,142,114,2,143,115],[19,74,46,4,75,47],[28,50,22,6,51,23],[33,46,16,4,47,17],[8,152,122,4,153,123],[22,73,45,3,74,46],[8,53,23,26,54,24],[12,45,15,28,46,16],[3,147,117,10,148,118],[3,73,45,23,74,46],[4,54,24,31,55,25],[11,45,15,31,46,16],[7,146,116,7,147,117],[21,73,45,7,74,46],[1,53,23,37,54,24],[19,45,15,26,46,16],[5,145,115,10,146,116],[19,75,47,10,76,48],[15,54,24,25,55,25],[23,45,15,25,46,16],[13,145,115,3,146,116],[2,74,46,29,75,47],[42,54,24,1,55,25],[23,45,15,28,46,16],[17,145,115],[10,74,46,23,75,47],[10,54,24,35,55,25],[19,45,15,35,46,16],[17,145,115,1,146,116],[14,74,46,21,75,47],[29,54,24,19,55,25],[11,45,15,46,46,16],[13,145,115,6,146,116],[14,74,46,23,75,47],[44,54,24,7,55,25],[59,46,16,1,47,17],[12,151,121,7,152,122],[12,75,47,26,76,48],[39,54,24,14,55,25],[22,45,15,41,46,16],[6,151,121,14,152,122],[6,75,47,34,76,48],[46,54,24,10,55,25],[2,45,15,64,46,16],[17,152,122,4,153,123],[29,74,46,14,75,47],[49,54,24,10,55,25],[24,45,15,46,46,16],[4,152,122,18,153,123],[13,74,46,32,75,47],[48,54,24,14,55,25],[42,45,15,32,46,16],[20,147,117,4,148,118],[40,75,47,7,76,48],[43,54,24,22,55,25],[10,45,15,67,46,16],[19,148,118,6,149,119],[18,75,47,31,76,48],[34,54,24,34,55,25],[20,45,15,61,46,16]],r=function(t,r){var e={};return e.totalCount=t,e.dataCount=r,e},e={};return e.getRSBlocks=function(e,n){var o=function(r,e){switch(e){case g.L:return t[4*(r-1)+0];case g.M:return t[4*(r-1)+1];case g.Q:return t[4*(r-1)+2];case g.H:return t[4*(r-1)+3];default:return}}(e,n);if(void 0===o)throw"bad rs block @ typeNumber:"+e+"/errorCorrectionLevel:"+n;for(var i=o.length/3,a=[],u=0;u<i;u+=1)for(var f=o[3*u+0],c=o[3*u+1],l=o[3*u+2],h=0;h<f;h+=1)a.push(r(c,l));return a},e}(),b=function(){var t=[],r=0,e={getBuffer:function(){return t},getAt:function(r){var e=Math.floor(r/8);return 1==(t[e]>>>7-r%8&1)},put:function(t,r){for(var n=0;n<r;n+=1)e.putBit(1==(t>>>r-n-1&1))},getLengthInBits:function(){return r},putBit:function(e){var n=Math.floor(r/8);t.length<=n&&t.push(0),e&&(t[n]|=128>>>r%8),r+=1}};return e},M=function(t){var r=a,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+2<r.length;)t.put(o(r.substring(n,n+3)),10),n+=3;n<r.length&&(r.length-n==1?t.put(o(r.substring(n,n+1)),4):r.length-n==2&&t.put(o(r.substring(n,n+2)),7))}},o=function(t){for(var r=0,e=0;e<t.length;e+=1)r=10*r+i(t.charAt(e));return r},i=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);throw"illegal char :"+t};return n},x=function(t){var r=u,e=t,n={getMode:function(){return r},getLength:function(t){return e.length},write:function(t){for(var r=e,n=0;n+1<r.length;)t.put(45*o(r.charAt(n))+o(r.charAt(n+1)),11),n+=2;n<r.length&&t.put(o(r.charAt(n)),6)}},o=function(t){if("0"<=t&&t<="9")return t.charCodeAt(0)-"0".charCodeAt(0);if("A"<=t&&t<="Z")return t.charCodeAt(0)-"A".charCodeAt(0)+10;switch(t){case" ":return 36;case"$":return 37;case"%":return 38;case"*":return 39;case"+":return 40;case"-":return 41;case".":return 42;case"/":return 43;case":":return 44;default:throw"illegal char :"+t}};return n},m=function(r){var e=f,n=t.stringToBytes(r),o={getMode:function(){return e},getLength:function(t){return n.length},write:function(t){for(var r=0;r<n.length;r+=1)t.put(n[r],8)}};return o},L=function(r){var e=c,n=t.stringToBytesFuncs.SJIS;if(!n)throw"sjis not supported.";!function(){var t=n("友");if(2!=t.length||38726!=(t[0]<<8|t[1]))throw"sjis not supported."}();var o=n(r),i={getMode:function(){return e},getLength:function(t){return~~(o.length/2)},write:function(t){for(var r=o,e=0;e+1<r.length;){var n=(255&r[e])<<8|255&r[e+1];if(33088<=n&&n<=40956)n-=33088;else{if(!(57408<=n&&n<=60351))throw"illegal char at "+(e+1)+"/"+n;n-=49472}n=192*(n>>>8&255)+(255&n),t.put(n,13),e+=2}if(e<r.length)throw"illegal char at "+(e+1)}};return i},D=function(){var t=[],r={writeByte:function(r){t.push(255&r)},writeShort:function(t){r.writeByte(t),r.writeByte(t>>>8)},writeBytes:function(t,e,n){e=e||0,n=n||t.length;for(var o=0;o<n;o+=1)r.writeByte(t[o+e])},writeString:function(t){for(var e=0;e<t.length;e+=1)r.writeByte(t.charCodeAt(e))},toByteArray:function(){return t},toString:function(){var r="";r+="[";for(var e=0;e<t.length;e+=1)e>0&&(r+=","),r+=t[e];return r+="]"}};return r},S=function(t){var r=t,e=0,n=0,o=0,i={read:function(){for(;o<8;){if(e>=r.length){if(0==o)return-1;throw"unexpected end of file./"+o}var t=r.charAt(e);if(e+=1,"="==t)return o=0,-1;t.match(/^\s$/)||(n=n<<6|a(t.charCodeAt(0)),o+=6)}var i=n>>>o-8&255;return o-=8,i}},a=function(t){if(65<=t&&t<=90)return t-65;if(97<=t&&t<=122)return t-97+26;if(48<=t&&t<=57)return t-48+52;if(43==t)return 62;if(47==t)return 63;throw"c:"+t};return i},I=function(t,r,e){for(var n=function(t,r){var e=t,n=r,o=new Array(t*r),i={setPixel:function(t,r,n){o[r*e+t]=n},write:function(t){t.writeString("GIF87a"),t.writeShort(e),t.writeShort(n),t.writeByte(128),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(0),t.writeByte(255),t.writeByte(255),t.writeByte(255),t.writeString(","),t.writeShort(0),t.writeShort(0),t.writeShort(e),t.writeShort(n),t.writeByte(0);var r=a(2);t.writeByte(2);for(var o=0;r.length-o>255;)t.writeByte(255),t.writeBytes(r,o,255),o+=255;t.writeByte(r.length-o),t.writeBytes(r,o,r.length-o),t.writeByte(0),t.writeString(";")}},a=function(t){for(var r=1<<t,e=1+(1<<t),n=t+1,i=u(),a=0;a<r;a+=1)i.add(String.fromCharCode(a));i.add(String.fromCharCode(r)),i.add(String.fromCharCode(e));var f,c,g,l=D(),h=(f=l,c=0,g=0,{write:function(t,r){if(t>>>r!=0)throw"length over";for(;c+r>=8;)f.writeByte(255&(t<<c|g)),r-=8-c,t>>>=8-c,g=0,c=0;g|=t<<c,c+=r},flush:function(){c>0&&f.writeByte(g)}});h.write(r,n);var s=0,v=String.fromCharCode(o[s]);for(s+=1;s<o.length;){var d=String.fromCharCode(o[s]);s+=1,i.contains(v+d)?v+=d:(h.write(i.indexOf(v),n),i.size()<4095&&(i.size()==1<<n&&(n+=1),i.add(v+d)),v=d)}return h.write(i.indexOf(v),n),h.write(e,n),h.flush(),l.toByteArray()},u=function(){var t={},r=0,e={add:function(n){if(e.contains(n))throw"dup key:"+n;t[n]=r,r+=1},size:function(){return r},indexOf:function(r){return t[r]},contains:function(r){return void 0!==t[r]}};return e};return i}(t,r),o=0;o<r;o+=1)for(var i=0;i<t;i+=1)n.setPixel(i,o,e(i,o));var a=D();n.write(a);for(var u=function(){var t=0,r=0,e=0,n="",o={},i=function(t){n+=String.fromCharCode(a(63&t))},a=function(t){if(t<0);else{if(t<26)return 65+t;if(t<52)return t-26+97;if(t<62)return t-52+48;if(62==t)return 43;if(63==t)return 47}throw"n:"+t};return o.writeByte=function(n){for(t=t<<8|255&n,r+=8,e+=1;r>=6;)i(t>>>r-6),r-=6},o.flush=function(){if(r>0&&(i(t<<6-r),t=0,r=0),e%3!=0)for(var o=3-e%3,a=0;a<o;a+=1)n+="="},o.toString=function(){return n},o}(),f=a.toByteArray(),c=0;c<f.length;c+=1)u.writeByte(f[c]);return u.flush(),"data:image/gif;base64,"+u};return t}();qrcode.stringToBytesFuncs["UTF-8"]=function(t){return function(t){for(var r=[],e=0;e<t.length;e++){var n=t.charCodeAt(e);n<128?r.push(n):n<2048?r.push(192|n>>6,128|63&n):n<55296||n>=57344?r.push(224|n>>12,128|n>>6&63,128|63&n):(e++,n=65536+((1023&n)<<10|1023&t.charCodeAt(e)),r.push(240|n>>18,128|n>>12&63,128|n>>6&63,128|63&n))}return r}(t)},function(t){"function"==typeof define&&define.amd?define([],t):"object"==typeof exports&&(module.exports=t())}(function(){return qrcode});
+</script>
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycbz4ERWvuKMal8m3K6qmgnT3nFRags97IbvI-s-vYGdDcZa7ChVkPKlUZBj2hKA5xYXYmw/exec';   // ← แก้ตรงนี้
+const LIFF_ID = '';
+const PRE_IDT = (new URLSearchParams(location.search).get('idt') || '');
+let TOKEN = '', ME = null, BOOT = null, CUR = 'home', IDTOKEN = '', TIMEOFF = 0, PRELOAD = null;
+const $ = s => document.querySelector(s);
+const esc = v => String(v == null ? '' : v).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ST = {ok:'ครบเวลา',late:'สาย',early:'กลับก่อน',working:'กำลังทำงาน',waiting:'ยังไม่ลงเวลา',upcoming:'รอเข้ากะ',absent:'ขาดงาน',leave:'ลา',missing_out:'ลืมลงออก',review:'รอตรวจสอบ',extra:'OT นอกตาราง',rejected:'ไม่นับ'};
+const chip = s => '<span class="chip ' + esc(s) + '">' + esc(ST[s] || s) + '</span>';
+const hm = iso => iso ? new Date(iso).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit', hour12:false, timeZone:'Asia/Bangkok'}) : '—';
+const dmy = d => { const p = String(d).split('-'); return p.length === 3 ? p[2] + '/' + p[1] : d; };
+const THDOW = ['อา','จ','อ','พ','พฤ','ศ','ส'];
+const dowOf = d => new Date(d + 'T12:00:00+07:00').getUTCDay();
+const isMgr = () => ME && (ME.role === 'manager' || ME.role === 'admin');
+const isAdmin = () => ME && ME.role === 'admin';
+function toast(m, bad) { const t = $('#toast'); t.textContent = m; t.style.background = bad ? '#b3261e' : '#222'; t.style.display = 'block'; clearTimeout(toast.t); toast.t = setTimeout(() => t.style.display = 'none', 3800); }
+const todayStr = () => new Date(Date.now() + TIMEOFF).toLocaleDateString('en-CA', { timeZone: 'Asia/Bangkok' });
+const isIOS = () => /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+function deviceId() {
+  let d = load('dev');
+  const ck = () => { try { const m = document.cookie.match(/(?:^|; )hrdev=([A-Za-z0-9-]{16,64})/); return m ? m[1] : ''; } catch (e) { return ''; } };
+  if (!/^[A-Za-z0-9-]{16,64}$/.test(d)) d = ck();   // iOS อาจล้าง localStorage แต่ cookie ยังอยู่ (หรือกลับกัน)
+  if (!/^[A-Za-z0-9-]{16,64}$/.test(d)) {
+    d = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'd' + Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2);
+    d = d.replace(/[^A-Za-z0-9-]/g, '');
+  }
+  save('dev', d);
+  try { document.cookie = 'hrdev=' + d + '; max-age=63072000; path=/; SameSite=None; Secure'; } catch (e) {}
+  return d;
+}
+function save(k, v) { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch (e) {} }
+function load(k) { try { return localStorage.getItem(k) || ''; } catch (e) { return ''; } }
+function call(name, args, anon) {
+  return fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ rpc: name, token: anon ? null : TOKEN, args: args || [] }) })
+    .then(r => r.json(), () => { throw new Error('เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจสัญญาณอินเทอร์เน็ตแล้วลองใหม่'); })
+    .then(j => {
+      if (j && j.ok) return j.data;
+      const m = String((j && j.error) || 'เกิดข้อผิดพลาด').replace(/^Error:\s*/, '');
+      if (m.indexOf('AUTH') >= 0) { TOKEN = ''; save('tk', null); showLogin('เซสชันหมดอายุ กรุณาเข้าสู่ระบบใหม่'); }
+      throw new Error(m);
+    });
+}
+async function run(fn, btn) { if (btn) btn.disabled = true; try { return await fn(); } catch (e) { if (String(e.message).indexOf('AUTH') < 0) toast(e.message, true); } finally { if (btn) btn.disabled = false; } }
+function openModal(html) { $('#modalBody').innerHTML = html; $('#modal').style.display = 'flex'; }
+function closeModal() { $('#modal').style.display = 'none'; }
+$('#modal').addEventListener('click', e => { if (e.target.id === 'modal') closeModal(); });
+const thisMonth = () => (BOOT ? BOOT.today : new Date().toISOString().slice(0, 10)).slice(0, 7);
+const monthInput = (id, v, cb) => '<input type="month" id="' + id + '" value="' + esc(v) + '" onchange="' + cb + '">';
+
+// พจนานุกรมไทย→พม่า (เฉพาะหน้าพนักงาน)
+const MY_EXACT = {
+  'ออก': 'ထွက်ရန်', 'ยกเลิก': 'ပယ်ဖျက်', 'ปิด': 'ပိတ်ရန်', 'บันทึก': 'သိမ်းရန်', 'วันที่': 'ရက်စွဲ', 'วัน': 'နေ့', 'กะ': 'ဆိုင်း', 'เวลา': 'အချိန်',
+  'เข้า / ออก': 'ဝင် / ထွက်', 'สาย / กลับก่อน': 'နောက်ကျ / စောပြန်', 'ชม.ทำงาน': 'အလုပ်ချိန် (နာရီ)', 'OT': 'OT', 'สถานะ': 'အခြေအနေ', 'ประเภท': 'အမျိုးအစား',
+  'พนักงาน': 'ဝန်ထမ်း', 'รายละเอียด': 'အသေးစိတ်', 'สาย': 'နောက်ကျ', 'ลา': 'ခွင့်', 'ครบเวลา': 'အချိန်ပြည့်', 'กลับก่อน': 'စောပြန်', 'ขาดงาน': 'ပျက်ကွက်',
+  'ไม่นับ': 'မရေတွက်', 'คะแนน': 'ရမှတ်', 'ตกลง': 'အိုကေ',
+  'อา': 'နွေ', 'จ': 'လာ', 'อ': 'ဂါ', 'พ': 'ဟူး', 'พฤ': 'တေး', 'ศ': 'သော', 'ส': 'နေ',
+  'เช้า': 'မနက်ဆိုင်း', 'บ่าย': 'နေ့လည်ဆိုင်း', 'ดึก': 'ညဆိုင်း', 'สำนักงาน': 'ရုံးဆိုင်း', 'วันหยุด': 'ပိတ်ရက်'
+};
+const MY_SUB = {
+  'ลงเวลา · ตารางงาน · ลา/OT · KPI': 'အချိန်မှတ် · အလုပ်ချိန်ဇယား · ခွင့်/OT · KPI',
+  'รหัสพนักงาน': 'ဝန်ထမ်းကုဒ်', 'PIN 6 หลัก': 'PIN ၆ လုံး', 'เข้าสู่ระบบ': 'ဝင်ရောက်ရန်',
+  'ลา / OT / แก้เวลา': 'ခွင့် / OT / အချိန်ပြင်', 'ตารางงานของฉัน': 'ကျွန်ုပ်၏ အလုပ်ချိန်ဇယား', 'ตารางงาน': 'အလုပ်ချိန်ဇယား',
+  'เวลาเซิร์ฟเวอร์ (แก้ไขไม่ได้)': 'ဆာဗာအချိန် (ပြင်၍မရပါ)', 'เวลาเซิร์ฟเวอร์': 'ဆာဗာအချိန်',
+  'ลงเวลานอกตาราง': 'ဇယားပြင်ပ အချိန်မှတ်ခြင်း', 'ลงเวลาเข้างาน': 'အလုပ်ဝင်ချိန် မှတ်ရန်', 'ลงเวลาออกงาน': 'အလုပ်ဆင်းချိန် မှတ်ရန်',
+  'ลงเวลาไม่สำเร็จ:': 'အချိန်မှတ်ခြင်း မအောင်မြင်ပါ:', 'ลงเวลา': 'အချိန်မှတ်ရန်',
+  'เมื่อลงเวลาออก ระบบจะส่งให้ผู้จัดการตรวจสอบ (นับเป็น OT หรือปรับเป็นกะ) ยังไม่นับเป็นเวลาทำงานจนกว่าจะอนุมัติ': 'အလုပ်ဆင်းချိန် မှတ်လိုက်သောအခါ မန်နေဂျာထံ စစ်ဆေးရန် ပို့ပါမည် (OT သို့မဟုတ် ဆိုင်းပြောင်းအဖြစ် သတ်မှတ်မည်) အတည်ပြုမချင်း အလုပ်လုပ်ချိန် မရေတွက်သေးပါ',
+  'ยังไม่ได้ตั้งพิกัดจุดลงเวลา (แอดมินตั้งที่เมนู ตั้งค่า)': 'အချိန်မှတ်ရာ တည်နေရာ မသတ်မှတ်ရသေးပါ (အက်ဒမင်က ဆက်တင်တွင် သတ်မှတ်ရမည်)',
+  'กดปุ่มด้านล่าง ระบบจะเปิดกล้องให้ถ่ายรูป': 'အောက်ပါခလုတ်ကိုနှိပ်ပါ ကင်မရာပွင့်လာပါမည် ဓာတ်ပုံရိုက်ပါ — ',
+  '(ต้องถ่ายสดทุกครั้ง · รูปจะมีวันเวลาและพิกัด GPS ประทับ และเห็นได้เฉพาะเจ้าของระบบ)': '(အကြိမ်တိုင်း တိုက်ရိုက်ရိုက်ရမည် · ဓာတ်ပုံပေါ်တွင် ရက်စွဲ၊ အချိန်၊ GPS တည်နေရာ ပါဝင်ပြီး စနစ်ပိုင်ရှင်သာ ကြည့်နိုင်သည်)',
+  'ต้องอยู่ห่างจุดลงเวลาไม่เกิน': 'အချိန်မှတ်ရာနေရာနှင့် အကွာအဝေး ', 'เมตร และสัญญาณ GPS คลาดเคลื่อนไม่เกิน': 'မီတာထက် မပိုရ၊ GPS အမှား ', 'เมตร': 'မီတာထက် မပိုရ',
+  'เปิดในเบราว์เซอร์ (Chrome/Safari)': 'ဘရောက်ဇာ (Chrome/Safari) တွင် ဖွင့်ရန်',
+  '— ใช้เมื่อลงเวลาในแอป LINE ไม่ได้ เพราะ LINE บางรุ่นบล็อก GPS/กล้อง': '— LINE အက်ပ်တွင် အချိန်မှတ်၍မရပါက သုံးပါ (LINE အချို့တွင် GPS/ကင်မရာကို ပိတ်ထားသောကြောင့်)',
+  'ย้อนหลัง 7 กะล่าสุด': 'နောက်ဆုံး ၇ ဆိုင်း မှတ်တမ်း', 'เปลี่ยน PIN': 'PIN ပြောင်းရန်', 'ผูก LINE': 'LINE ချိတ်ရန်',
+  'บัญชีนี้ยังไม่ผูก LINE (เปิดแอปผ่าน LINE แล้วเข้าสู่ระบบหนึ่งครั้ง)': 'ဤအကောင့်ကို LINE နှင့် မချိတ်ရသေးပါ (LINE မှ အက်ပ်ကိုဖွင့်ပြီး တစ်ကြိမ်ဝင်ပါ)',
+  'PIN เดิม': 'PIN အဟောင်း', 'PIN ใหม่ (ตัวเลข 6 หลัก)': 'PIN အသစ် (ဂဏန်း ၆ လုံး)', 'เปลี่ยน PIN แล้ว': 'PIN ပြောင်းပြီးပါပြီ',
+  'กำลังโหลด…': 'ဖွင့်နေသည်…', 'นอกตาราง': 'ဇယားပြင်ပ', 'เข้างาน ': 'အလုပ်ဝင် ', 'เข้างาน': 'အလုပ်ဝင်', 'เลิกงาน': 'အလုပ်ဆင်း',
+  'กำลังทำงาน': 'အလုပ်လုပ်နေ', 'ยังไม่ลงเวลา': 'အချိန်မမှတ်ရသေး', 'รอเข้ากะ': 'ဆိုင်းဝင်ရန်စောင့်', 'ลืมลงออก': 'ထွက်ချိန် မမှတ်မိ', 'รอตรวจสอบ': 'စစ်ဆေးရန်စောင့်', 'OT นอกตาราง': 'ဇယားပြင်ပ OT',
+  'ยื่นคำขอ': 'တောင်းဆိုမှု တင်ရန်',
+  'ลาและ OT ต้องยื่นและให้ผู้จัดการกดอนุมัติเท่านั้น · ไม่มีใบลาที่อนุมัติ = นับเป็นขาดงาน · OT ที่ไม่ได้อนุมัติไม่นับ': 'ခွင့်နှင့် OT ကို တင်ပြီး မန်နေဂျာ အတည်ပြုမှသာ ရမည် · အတည်ပြုထားသော ခွင့်လျှောက်လွှာ မရှိလျှင် ပျက်ကွက်ဟု သတ်မှတ်မည် · အတည်မပြုသော OT ကို မရေတွက်ပါ',
+  'ใบลา': 'ခွင့်လျှောက်လွှာ', 'ขอ OT (นาที, ขั้นต่ำ 60)': 'OT တောင်းခံ (မိနစ်၊ အနည်းဆုံး ၆၀)', 'ขอ OT': 'OT တောင်းခံရန်', 'ขอแก้เวลา (ลืมลง)': 'အချိန်ပြင်ရန် (မမှတ်မိ)', 'ขอสลับวันหยุด': 'ပိတ်ရက် လဲလှယ်ရန်',
+  'แทนพนักงาน (ถ้ามี)': 'ဝန်ထမ်းအစား (ရှိလျှင်)', 'ตัวฉันเอง': 'ကျွန်ုပ်ကိုယ်တိုင်', 'ส่งคำขอแล้ว รอผู้จัดการอนุมัติ': 'တောင်းဆိုမှု ပို့ပြီးပါပြီ မန်နေဂျာ အတည်ပြုရန် စောင့်ပါ',
+  'ส่งคำขอ': 'တောင်းဆိုမှု ပို့ရန်', 'รายการคำขอ': 'တောင်းဆိုမှု စာရင်း', 'ยังไม่มีคำขอ': 'တောင်းဆိုမှု မရှိသေးပါ',
+  'ไม่อนุมัติแล้ว': 'အတည်မပြုပါ', 'ไม่อนุมัติ': 'အတည်မပြု', 'รออนุมัติ': 'အတည်ပြုရန်စောင့်', 'อนุมัติแล้ว': 'အတည်ပြုပြီး', 'อนุมัติ': 'အတည်ပြုရန်',
+  'ขอสลับกะ / เปลี่ยนเวลาเข้างาน': 'ဆိုင်းလဲရန် / အလုပ်ဝင်ချိန် ပြောင်းရန်', 'สลับกะกับ ': 'ဆိုင်းလဲမည့်သူ ', 'เปลี่ยนเป็นกะ ': 'ဆိုင်းပြောင်းမည် ', 'สลับกะ': 'ဆိုင်းလဲ',
+  'กะของคุณวันนั้น:': 'ထိုနေ့ သင့်ဆိုင်း:', 'วิธีสลับ': 'လဲပုံ', 'เปลี่ยนเวลาเข้างานของฉัน (เลือกกะใหม่)': 'ကျွန်ုပ်၏ အလုပ်ဝင်ချိန် ပြောင်းမည် (ဆိုင်းအသစ်ရွေး)', 'สลับกับ ': 'လဲမည့်သူ ', '(กะ ': '(ဆိုင်း ', 'กะที่ต้องการ': 'လိုချင်သောဆိုင်း',
+  'ผู้จัดการต้องอนุมัติ · สลับได้เฉพาะวันที่ยังไม่ลงเวลา · สลับกับเพื่อนได้เฉพาะแผนกเดียวกัน': 'မန်နေဂျာ အတည်ပြုရမည် · အချိန်မမှတ်ရသေးသောနေ့များသာ လဲနိုင်သည် · တစ်ဌာနတည်းသူငယ်ချင်းနှင့်သာ လဲနိုင်သည်',
+  'วันที่เลือกคุณไม่มีกะในตาราง (ถ้าอยากมาทำงานวันหยุด ให้ใช้ "ขอสลับวันหยุด")': 'ရွေးထားသောနေ့တွင် သင့်ဆိုင်း မရှိပါ (ပိတ်ရက်တွင် အလုပ်လုပ်လိုလျှင် "ပိတ်ရက် လဲလှယ်ရန်" ကိုသုံးပါ)',
+  'สลับกะย้อนหลังไม่ได้': 'ပြီးခဲ့သောရက်အတွက် ဆိုင်းလဲ၍မရပါ', 'ลงเวลาแล้ว สลับกะไม่ได้': 'အချိန်မှတ်ပြီးဖြစ်သဖြင့် ဆိုင်းလဲ၍မရပါ', 'สลับกะได้เฉพาะเพื่อนร่วมแผนกเดียวกัน': 'တစ်ဌာနတည်းသူငယ်ချင်းနှင့်သာ ဆိုင်းလဲနိုင်သည်',
+  'ลงเวลาต้องยืนยันตัวตนผ่าน LINE': 'အချိန်မှတ်ရန် LINE ဖြင့် ကိုယ်ရည်ကိုယ်သွေး အတည်ပြုရမည်', 'เปิดผ่าน LINE': 'LINE မှ ဖွင့်ရန်',
+  'เปิดระบบจากในแอป LINE (กดลิงก์/เมนูในแชตบริษัท) แล้วจึงลงเวลาได้ — ไม่ต้องใส่ PIN ซ้ำ': 'LINE အက်ပ်ထဲမှ စနစ်ကိုဖွင့်ပါ (ကုမ္ပဏီ chat ရှိ လင့်ခ်/မီနူး) ထို့နောက် အချိန်မှတ်နိုင်သည် — PIN ထပ်ထည့်စရာမလို',
+  'บัญชีนี้ยังไม่ผูก LINE: กดปุ่ม "ผูก LINE" ด้านล่าง ส่งรหัสในแชต LINE ของบริษัท แล้วเปิดระบบผ่าน LINE': 'ဤအကောင့်ကို LINE နှင့် မချိတ်ရသေးပါ: အောက်ပါ "LINE ချိတ်ရန်" ကိုနှိပ်ပြီး ကုမ္ပဏီ LINE chat တွင် ကုဒ်ပို့ကာ LINE မှ စနစ်ကိုဖွင့်ပါ',
+  'ต้องเข้าผ่านแอป LINE เพื่อลงเวลา — เปิดลิงก์ระบบจากในแชต LINE ของบริษัท (หรือกดปุ่ม "เปิดผ่าน LINE")': 'အချိန်မှတ်ရန် LINE အက်ပ်မှ ဝင်ရမည် — ကုမ္ပဏီ LINE chat ထဲမှ လင့်ခ်ကိုဖွင့်ပါ (သို့မဟုတ် "LINE မှ ဖွင့်ရန်" ကိုနှိပ်ပါ)',
+  'ต้องผูกบัญชี LINE ก่อนจึงลงเวลาได้ — กดปุ่ม "ผูก LINE" ในหน้านี้ แล้วทำตามขั้นตอน': 'အချိန်မှတ်နိုင်ရန် LINE အကောင့်ကို အရင်ချိတ်ရမည် — ဤစာမျက်နှာရှိ "LINE ချိတ်ရန်" ကိုနှိပ်ပြီး အဆင့်များအတိုင်း လုပ်ပါ',
+  'แก้เวลา': 'အချိန်ပြင်', 'สลับวันหยุด': 'ပိတ်ရက်လဲ', 'หยุดวันที่ ': 'ပိတ်မည့်ရက် ', ' → มาทำงานแทนวันที่ ': ' → အစားလာမည့်ရက် ', 'เข้า ': 'ဝင် ', ' / ออก ': ' / ထွက် ',
+  'ถึงวันที่': 'ရက်စွဲအထိ', 'ประเภทการลา': 'ခွင့်အမျိုးအစား', 'เหตุผล / หลักฐาน': 'အကြောင်းပြချက် / သက်သေ',
+  'แนบเอกสารประกอบ (ใบรับรองแพทย์ ฯลฯ) — ไม่บังคับ': 'စာရွက်စာတမ်း ပူးတွဲရန် (ဆရာဝန်လက်မှတ် စသည် · မလိုအပ်ပါ)', '📎 เอกสารแนบ': '📎 ပူးတွဲစာရွက်', 'เอกสารแนบ': 'ပူးတွဲစာရွက်',
+  'วันหยุดเดิมที่จะมาทำงานแทน': 'အစားလာမည့် မူလပိတ်ရက်',
+  '"วันที่" ด้านบน = วันที่ต้องการหยุดแทน (วันนั้นต้องมีกะ) · เมื่อผู้จัดการอนุมัติ ระบบสลับตารางให้อัตโนมัติ · ถ้าสัปดาห์ไหนไม่ได้หยุด ให้ขอหยุดชดเชย 2 วันในสัปดาห์ถัดไป ไม่งั้นนับเป็นทำงานวันหยุด': 'အပေါ်က "ရက်စွဲ" = အစားပိတ်လိုသည့်ရက် (ထိုနေ့တွင် ဆိုင်းရှိရမည်) · မန်နေဂျာ အတည်ပြုလျှင် ဇယားကို အလိုအလျောက် လဲပေးမည် · ရက်သတ္တပတ်တစ်ခုတွင် မပိတ်ခဲ့လျှင် နောက်သီတင်းပတ်တွင် ၂ ရက် အစားပိတ်ရန် တောင်းပါ မဟုတ်လျှင် ပိတ်ရက်တွင် အလုပ်လုပ်သည်ဟု သတ်မှတ်မည်',
+  'เวลาเข้าที่ถูกต้อง': 'မှန်ကန်သော ဝင်ချိန်', 'เวลาออกที่ถูกต้อง': 'မှန်ကန်သော ထွက်ချိန်',
+  'เช้า': 'မနက်', 'บ่าย': 'နေ့လည်', 'ดึก': 'ည',
+  'ลาป่วย': 'ဖျားနာခွင့်', 'ลากิจ': 'ကိုယ်ရေးကိစ္စခွင့်', 'ลาพักร้อน': 'နှစ်ပတ်လည်ခွင့်', 'ลาใช้วันหยุด': 'စုဆောင်းထားသော ပိတ်ရက်သုံးခွင့်', 'อื่นๆ': 'အခြား', 'ลาไม่รับค่าจ้าง': 'လစာမဲ့ခွင့်',
+  'รวม ': 'စုစုပေါင်း ', ' กะ ·': ' ဆိုင်း ·', 'ชม./เดือน': 'နာရီ/လ', 'ชม.': 'နာရီ', 'นาที': 'မိနစ်',
+  'KPI ของฉัน': 'ကျွန်ုပ်၏ KPI', 'ยังไม่ประกาศผล (จะแสดงคะแนนเมื่อสิ้นเดือนและผู้จัดการอนุมัติแล้ว)': 'ရလဒ် မကြေညာသေးပါ (လကုန်ပြီး မန်နေဂျာ အတည်ပြုပြီးမှ ရမှတ်ပြပါမည်)',
+  'ถ่ายรูปลงเวลา': 'အချိန်မှတ် ဓာတ်ပုံရိုက်ရန်', 'ถ่ายรูป': 'ဓာတ်ပုံရိုက်ရန်', 'รอ GPS…': 'GPS စောင့်နေသည်…', 'กำลังจับ GPS…': 'GPS ရှာနေသည်…', 'พร้อมถ่าย · GPS ±': 'ရိုက်ရန်အဆင်သင့် · GPS ±',
+  'เปิดกล้องของเครื่องเพื่อถ่ายรูปใหม่ตอนนี้ (รูปเก่าในคลังภาพใช้ไม่ได้)': 'ဖုန်းကင်မရာဖွင့်ပြီး ယခု ဓာတ်ပုံအသစ်ရိုက်ပါ (ဓာတ်ပုံလိုက်ဘရီထဲက ပုံဟောင်း သုံး၍မရပါ)',
+  'รูปนี้ถ่ายไว้นานแล้ว ต้องถ่ายใหม่ตอนนี้เท่านั้น': 'ဤဓာတ်ပုံသည် ကြာပြီဖြစ်သည် ယခုပဲ ပြန်ရိုက်ရမည်', 'อ่านรูปไม่ได้ ลองถ่ายใหม่': 'ဓာတ်ပုံဖတ်၍မရပါ ပြန်ရိုက်ကြည့်ပါ', 'ยกเลิกการถ่ายรูป': 'ဓာတ်ပုံရိုက်ခြင်း ပယ်ဖျက်သည်',
+  'กำลังเปิดกล้องและอ่านตำแหน่ง… (ถ้ามีหน้าต่างขออนุญาต ให้กดอนุญาต)': 'ကင်မရာဖွင့်ပြီး တည်နေရာ ဖတ်နေသည်… (ခွင့်ပြုချက်မေးပါက "ခွင့်ပြု" ကိုနှိပ်ပါ)',
+  'กำลังจับสัญญาณ GPS… ความคลาดเคลื่อนตอนนี้': 'GPS အချက်ပြ ရှာနေသည်… လက်ရှိအမှား', 'ตำแหน่งคลาดเคลื่อน ±': 'တည်နေရာ အမှား ±', 'กำลังบันทึก…': 'သိမ်းဆည်းနေသည်…', 'สำเร็จ': 'အောင်မြင်သည်', ' ม.': ' မီ.',
+  '(สาย ': '(နောက်ကျ ', 'ลงเวลาเข้างาน ': 'အလုပ်ဝင်ချိန်မှတ်ပြီး ', 'ลงเวลาออกงาน ': 'အလုပ်ဆင်းချိန်မှတ်ပြီး ',
+  'รหัสพนักงานหรือ PIN ไม่ถูกต้อง': 'ဝန်ထမ်းကုဒ် သို့မဟုတ် PIN မမှန်ပါ', 'ใส่รหัสผิดหลายครั้ง ลองใหม่ใน 10 นาที': 'မှားယွင်းမှု များလွန်းသည် ၁၀ မိနစ်နောက် ပြန်စမ်းပါ',
+  'เครื่องนี้ยังไม่ได้รับอนุมัติ — ส่งคำขอเปลี่ยนเครื่องให้ผู้จัดการแล้ว รอการอนุมัติแล้วลองเข้าใหม่ (หรือเปิดผ่าน LINE ที่ผูกไว้)': 'ဤဖုန်းကို မအတည်ပြုရသေးပါ — ဖုန်းပြောင်းရန် တောင်းဆိုချက်ကို မန်နေဂျာထံ ပို့ပြီးပါပြီ အတည်ပြုပြီးမှ ပြန်ဝင်ကြည့်ပါ (သို့မဟုတ် ချိတ်ထားသော LINE မှ ဝင်ပါ)',
+  'อยู่ห่างจุดลงเวลา': 'အချိန်မှတ်ရာနေရာနှင့် ဝေးနေသည် ', 'สัญญาณ GPS คลาดเคลื่อน': 'GPS အမှားများနေသည် ', '(ต้องไม่เกิน': '(မကျော်ရ ',
+  'ต้องยื่นใบลาล่วงหน้าหรือในวันนั้น': 'ခွင့်လျှောက်လွှာကို ကြိုတင် သို့မဟုတ် ထိုနေ့တွင် တင်ရမည်', 'ระบุเหตุผล': 'အကြောင်းပြချက် ထည့်ပါ', 'ระบุวันที่': 'ရက်စွဲ ထည့်ပါ',
+  'สิทธิ์วันหยุดสะสมไม่พอสำหรับการลาครั้งนี้': 'စုဆောင်းထားသော ပိတ်ရက်အခွင့်အရေး မလုံလောက်ပါ', 'พนักงานคนนี้ไม่มีสิทธิ์สะสมวันหยุดนักขัตฤกษ์': 'ဤဝန်ထမ်းတွင် ရုံးပိတ်ရက် စုဆောင်းခွင့် မရှိပါ',
+  'ไฟล์แนบใหญ่เกินไป (ไม่เกิน 3 MB)': 'ပူးတွဲဖိုင် ကြီးလွန်းသည် (၃ MB ထက်မကျော်ရ)', 'ไม่มีสิทธิ์ดูเอกสารนี้': 'ဤစာရွက်ကို ကြည့်ခွင့်မရှိပါ',
+  'คำขอนี้ถูกพิจารณาแล้ว': 'ဤတောင်းဆိုမှုကို ဆုံးဖြတ်ပြီးဖြစ်သည်'
+};
+
+// แปลภาษาพม่าเฉพาะหน้าที่เกี่ยวกับพนักงาน (ลงเวลา / ตารางของฉัน / ลา-OT / KPI ของฉัน / เข้าสู่ระบบ) — หน้าผู้จัดการ/แอดมินคงเป็นภาษาไทย
+let LANG = load('lang') === 'my' ? 'my' : 'th';
+const MY_KEYS = Object.keys(MY_SUB).sort((a, b) => b.length - a.length);
+function myTr(str) {
+  const t = str.trim(); if (!t) return str;
+  if (MY_EXACT[t] !== undefined) return str.replace(t, MY_EXACT[t]);
+  if (!/[฀-๿]/.test(str)) return str;
+  let o = str;
+  for (let i = 0; i < MY_KEYS.length; i++) { const k = MY_KEYS[i]; if (o.indexOf(k) >= 0) o = o.split(k).join(MY_SUB[k]); }
+  return o;
+}
+function myTree(root) {
+  if (!root) return;
+  const w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null), nodes = [];
+  while (w.nextNode()) { const n = w.currentNode, p = n.parentNode; if (p && /^(SCRIPT|STYLE|TEXTAREA)$/.test(p.nodeName)) continue; nodes.push(n); }
+  nodes.forEach(n => { const v = myTr(n.nodeValue); if (v !== n.nodeValue) n.nodeValue = v; });
+  (root.querySelectorAll ? root.querySelectorAll('[placeholder],[title]') : []).forEach(el => ['placeholder', 'title'].forEach(a => { const x = el.getAttribute(a); if (x) { const v = myTr(x); if (v !== x) el.setAttribute(a, v); } }));
+}
+const staffView = () => ['home', 'requests', 'kpi'].indexOf(CUR) >= 0 || (CUR === 'schedule' && ME && !isMgr());
+let myPending = false;
+function applyLang() {
+  myPending = false; if (LANG !== 'my') return;
+  if (!ME) { myTree($('#app')); myTree($('#toast')); return; }
+  if (staffView()) { myTree($('#view')); myTree($('#modalBody')); }
+  document.querySelectorAll('nav .tab').forEach(b => { if (['home', 'schedule', 'requests', 'kpi'].indexOf(b.dataset.t) >= 0) myTree(b); });
+  myTree($('#toast'));
+}
+new MutationObserver(() => { if (LANG === 'my' && !myPending) { myPending = true; requestAnimationFrame(applyLang); } }).observe(document.body, { childList: true, subtree: true, characterData: true });
+function setLang() {
+  LANG = LANG === 'my' ? 'th' : 'my'; save('lang', LANG);
+  if (ME) { renderShell(); go(CUR); } else showLogin();
+  applyLang();
+}
+const langBtn = () => '<button class="lang" onclick="setLang()" style="padding:4px 10px">' + (LANG === 'my' ? 'ภาษาไทย' : 'မြန်မာ') + '</button>';
+
+// ---------- login ----------
+function showLogin(msg) {
+  $('#app').innerHTML = '<main><div class="card" style="max-width:380px;margin:40px auto"><div style="float:right">' + langBtn() + '</div><h2>Sea Paradise Team</h2><div class="mut sm">ลงเวลา · ตารางงาน · ลา/OT · KPI</div>' +
+    (msg ? '<p class="cov-bad sm">' + esc(msg) + '</p>' : '') +
+    '<label>รหัสพนักงาน</label><input id="lid" autocomplete="username" style="width:100%"><label>PIN 6 หลัก</label><input id="lpin" type="password" inputmode="numeric" autocomplete="current-password" style="width:100%">' +
+    '<p><button class="pri" style="width:100%" id="lbtn" onclick="doLogin()">เข้าสู่ระบบ</button></p></div></main>';
+  $('#lpin').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+}
+async function doLogin() {
+  await run(async () => {
+    const r = await call('login', [$('#lid').value, $('#lpin').value, deviceId(), isIOS() ? 'ios' : ''], true);
+    TOKEN = r.token; save('tk', TOKEN);
+    await start();
+    if (IDTOKEN && !BOOT.lineLinked) { try { await call('bindLine', [IDTOKEN]); toast('ผูกบัญชี LINE แล้ว'); } catch (e) {} }
+  }, $('#lbtn'));
+}
+async function logout() { try { await call('logout'); } catch (e) {} TOKEN = ''; save('tk', null); showLogin(); }
+async function start() {
+  const both = await Promise.all([call('bootstrap'), call('myState')]);   // ยิงพร้อมกัน 2 คำสั่ง ลดเวลารอ
+  BOOT = both[0]; BOOT.url = ''; PRELOAD = both[1]; ME = BOOT.me; CUR = 'home';
+  renderShell(); go('home');
+}
+function renderShell() {
+  const tabs = [['home', 'ลงเวลา'], ['schedule', 'ตารางงาน'], ['requests', 'ลา / OT / แก้เวลา'], ['kpi', 'KPI']];
+  if (isMgr()) tabs.unshift(['overview', 'ภาพรวม']), tabs.push(['report', 'รายงาน'], ['close', 'ตรวจ/ปิดรอบเดือน'], ['reward', 'เงินรางวัล']);
+  if (isAdmin()) tabs.push(['balance', 'วันลาคงเหลือ'], ['admin', 'ตั้งค่า']);
+  $('#app').innerHTML = '<header><b>Sea Paradise Team</b><span class="sp"></span>' + langBtn() + ' <small>' + esc(ME.name) + ' · ' + esc(ME.role === 'admin' ? 'แอดมิน' : ME.role === 'manager' ? 'ผู้จัดการ' : ME.position || 'พนักงาน') + '</small><button onclick="logout()">ออก</button></header>' +
+    '<nav>' + tabs.map(t => '<button class="tab" data-t="' + t[0] + '" onclick="go(\'' + t[0] + '\')">' + esc(t[1]) + '</button>').join('') + '</nav><main id="view"></main>';
+}
+function go(v) {
+  CUR = v;
+  document.querySelectorAll('nav .tab').forEach(b => b.classList.toggle('on', b.dataset.t === v));
+  ({ home: viewHome, overview: viewOverview, schedule: viewSchedule, requests: viewRequests, kpi: viewKpi, report: viewReport, close: viewClose, reward: viewReward, balance: viewBalance, admin: viewAdmin })[v]();
+}
+
+// ---------- หน้าลงเวลา ----------
+let PHOTO = '', ST_ = null;
+async function viewHome() {
+  $('#view').innerHTML = '<div class="card mut">กำลังโหลด…</div>';
+  await run(async () => {
+    ST_ = PRELOAD || await call('myState'); PRELOAD = null; TIMEOFF = new Date(ST_.now).getTime() - Date.now(); PHOTO = ''; stopCam();
+    const s = ST_, can = s.mode !== 'none' && s.configured && !s.needLine;
+    $('#view').innerHTML = (s.needLine ? '<div class="card"><b>ลงเวลาต้องยืนยันตัวตนผ่าน LINE</b><p class="sm">' + (s.lineBound ? 'เปิดระบบจากในแอป LINE (กดลิงก์/เมนูในแชตบริษัท) แล้วจึงลงเวลาได้ — ไม่ต้องใส่ PIN ซ้ำ' : 'บัญชีนี้ยังไม่ผูก LINE: กดปุ่ม "ผูก LINE" ด้านล่าง ส่งรหัสในแชต LINE ของบริษัท แล้วเปิดระบบผ่าน LINE') + '</p>' + (s.liffUrl ? '<p><a href="' + esc(s.liffUrl) + '"><button class="pri" type="button">เปิดผ่าน LINE</button></a></p>' : '') + '</div>' : '') + '<div class="card"><div class="mut sm">เวลาเซิร์ฟเวอร์ (แก้ไขไม่ได้)</div><div class="big" id="clk"></div><div class="mut" id="cdate"></div>' +
+      (s.unscheduled ? '<p><b>ลงเวลานอกตาราง</b>' + (s.inAt ? ' · เข้างาน ' + hm(s.inAt) : '') + '</p><p class="sm cov-bad">' + (s.mode === 'in' ? esc(s.note) : 'เมื่อลงเวลาออก ระบบจะส่งให้ผู้จัดการตรวจสอบ (นับเป็น OT หรือปรับเป็นกะ) ยังไม่นับเป็นเวลาทำงานจนกว่าจะอนุมัติ') + '</p>' :
+        s.shift ? '<p>กะ <b>' + esc(s.shift.code) + '</b> ' + esc(s.shift.name) + ' ' + esc(s.shift.start) + '–' + esc(s.shift.end) + (s.inAt ? ' · เข้างาน ' + hm(s.inAt) : '') + '</p>' : '') +
+      (!s.configured ? '<p class="cov-bad">ยังไม่ได้ตั้งพิกัดจุดลงเวลา (แอดมินตั้งที่เมนู ตั้งค่า)</p>' : '') +
+      (s.mode === 'none' ? '<p class="mut">' + esc(s.reason) + '</p>' : '') +
+      (can ? '<p class="sm mut">กดปุ่มด้านล่าง ระบบจะเปิดกล้องให้ถ่ายรูป' + (s.mode === 'in' ? 'เข้างาน' : 'เลิกงาน') + ' (ต้องถ่ายสดทุกครั้ง · รูปจะมีวันเวลาและพิกัด GPS ประทับ และเห็นได้เฉพาะเจ้าของระบบ)</p><div id="pv"></div>' +
+        '<p class="sm mut">ต้องอยู่ห่างจุดลงเวลาไม่เกิน ' + esc(s.radius) + ' เมตร และสัญญาณ GPS คลาดเคลื่อนไม่เกิน ' + esc(s.radius) + ' เมตร</p>' +
+        '<button class="pri" id="cbtn" style="width:100%;padding:14px;font-size:17px" onclick="doClock()">' + (s.mode === 'in' ? 'ลงเวลาเข้างาน' : 'ลงเวลาออกงาน') + (s.unscheduled ? ' (นอกตาราง)' : '') + '</button>' : '') +
+      '<div id="gps" class="sm mut" style="margin-top:8px"></div>' +
+      (BOOT.url ? '<p class="sm" style="margin-top:10px"><a href="' + esc(BOOT.url) + '" target="_blank" rel="noopener">เปิดในเบราว์เซอร์ (Chrome/Safari)</a> <span class="mut">— ใช้เมื่อลงเวลาในแอป LINE ไม่ได้ เพราะ LINE บางรุ่นบล็อก GPS/กล้อง</span></p>' : '') + '</div>' +
+      '<div class="card"><h2>ย้อนหลัง 7 กะล่าสุด</h2>' + recTable(s.recent, false) + '</div>' +
+      '<div class="card"><button onclick="pinForm()">เปลี่ยน PIN</button> ' + (BOOT.lineLinked ? '' : '<button onclick="bindCode(this)">ผูก LINE</button> ') + (BOOT.liffReady && !BOOT.lineLinked ? '<span class="sm mut">บัญชีนี้ยังไม่ผูก LINE (เปิดแอปผ่าน LINE แล้วเข้าสู่ระบบหนึ่งครั้ง)</span>' : '') + '</div>';
+    if (can && !window.__gpsG) { window.__gpsG = 1; document.addEventListener('pointerdown', () => { if (CUR === 'home' && ST_ && ST_.mode !== 'none') gpsStart(); }, { passive: true }); }   // เริ่มจับ GPS เมื่อผู้ใช้แตะหน้าจอ (เบราว์เซอร์ไม่ยอมให้ขอสิทธิ์ตำแหน่งเองตอนโหลดหน้า)
+    tick(); clearInterval(viewHome.t); viewHome.t = setInterval(() => { if (CUR === 'home') tick(); else clearInterval(viewHome.t); }, 1000);
+  });
+}
+function tick() {
+  const d = new Date(Date.now() + TIMEOFF), c = $('#clk'); if (!c) return;
+  c.textContent = d.toLocaleTimeString('th-TH', { hour12: false, timeZone: 'Asia/Bangkok' });
+  $('#cdate').textContent = d.toLocaleDateString(LANG === 'my' ? 'my-MM' : 'th-TH', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'Asia/Bangkok' });
+}
+// ---------- GPS: เริ่มจับสัญญาณล่วงหน้าตั้งแต่เปิดหน้าลงเวลา (ตอนกดปุ่มจะได้ค่าทันที) ----------
+const GW = { wid: null, best: null, subs: [], stopT: null };
+function gpsStop() { if (GW.wid !== null) { try { navigator.geolocation.clearWatch(GW.wid); } catch (e) {} GW.wid = null; } clearTimeout(GW.stopT); }
+function gpsStart() {
+  if (!navigator.geolocation || !navigator.geolocation.watchPosition) return;
+  clearTimeout(GW.stopT); GW.stopT = setTimeout(gpsStop, 120000);   // หยุดเองใน 2 นาที (ประหยัดแบต)
+  if (GW.wid !== null) return;
+  GW.wid = navigator.geolocation.watchPosition(p => {
+    const c = { latitude: p.coords.latitude, longitude: p.coords.longitude, accuracy: p.coords.accuracy, ts: Date.now() };
+    if (!GW.best || Date.now() - GW.best.ts > 15000 || c.accuracy <= GW.best.accuracy) GW.best = c;
+    GW.subs.slice().forEach(f => f(GW.best, null));
+  }, e => { if (e && e.code === 1) { GW.subs.slice().forEach(f => f(null, e)); gpsStop(); } }, { enableHighAccuracy: true, timeout: 30000, maximumAge: 0 });
+}
+function getPos() {
+  return new Promise((res, rej) => {
+    if (!navigator.geolocation) return rej(new Error('อุปกรณ์นี้ไม่รองรับ GPS'));
+    const denied = 'ตำแหน่งถูกบล็อก — แตะไอคอนตำแหน่ง (มีเครื่องหมายกากบาท) ข้างช่องที่อยู่เว็บ เลือก "อนุญาต" แล้วรีเฟรชหน้า';
+    if (!navigator.geolocation.watchPosition) {
+      const t0 = setTimeout(() => rej(new Error('อ่านตำแหน่งไม่ได้ (หมดเวลา)')), 25000);
+      return navigator.geolocation.getCurrentPosition(p => { clearTimeout(t0); res(p.coords); }, e => { clearTimeout(t0); rej(new Error(e.code === 1 ? denied : 'อ่านตำแหน่งไม่ได้ ลองใหม่ในที่โล่ง')); }, { enableHighAccuracy: true, timeout: 20000, maximumAge: 0 });
+    }
+    const want = Number(BOOT.maxAcc || 20);
+    if (GW.best && Date.now() - GW.best.ts > 20000) { gpsStop(); GW.best = null; }   // ค่าเก่าเกิน 20 วินาที → เริ่มจับใหม่
+    let done = false, tm = null;
+    const sub = (b, e) => {
+      if (done) return;
+      if (e) {
+        let q = null; try { q = navigator.permissions && navigator.permissions.query({ name: 'geolocation' }); } catch (x) { q = null; }
+        if (q) q.then(r => fin(null, denied + ' (สถานะสิทธิ์: ' + r.state + ')'), () => fin(null, denied)); else fin(null, denied);
+        return;
+      }
+      if (!b) return;
+      setSt('กำลังจับสัญญาณ GPS… ความคลาดเคลื่อนตอนนี้ ' + Math.round(b.accuracy) + ' ม.', false);
+      if (b.accuracy <= want) fin(b);
+    };
+    const fin = (b, err) => {
+      if (done) return; done = true; clearTimeout(tm);
+      const i = GW.subs.indexOf(sub); if (i >= 0) GW.subs.splice(i, 1);
+      if (b) res({ latitude: b.latitude, longitude: b.longitude, accuracy: b.accuracy });
+      else rej(new Error(err || 'อ่านตำแหน่งไม่ได้ (หมดเวลา) — ในแอป LINE อาจบล็อก GPS ให้กด "เปิดในเบราว์เซอร์" แล้วลงเวลาจาก Chrome/Safari'));
+    };
+    tm = setTimeout(() => fin(GW.best), 20000);    // หมดเวลา: ใช้ค่าที่ดีที่สุดที่ได้ (ถ้าคลาดเคลื่อนเกินเซิร์ฟเวอร์จะแจ้งให้ลองใหม่)
+    GW.subs.push(sub); gpsStart();
+    if (GW.best) sub(GW.best, null);
+  });
+}
+function setSt(msg, bad) { const g = $('#gps'); if (g) { g.textContent = msg; g.className = 'sm ' + (bad ? 'cov-bad' : 'mut'); } }
+// ---------- ถ่ายรูปสด + ประทับวันเวลา/GPS ----------
+let CAMSTREAM = null;
+function stopCam() { if (CAMSTREAM) { try { CAMSTREAM.getTracks().forEach(t => t.stop()); } catch (e) {} CAMSTREAM = null; } }
+function stampLines(pos) {
+  const d = new Date(Date.now() + TIMEOFF);
+  const t = d.toLocaleString('en-GB', { timeZone: 'Asia/Bangkok', hour12: false, day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }).replace(',', '');
+  return ['วันที่/เวลา ' + t + ' (เวลาเซิร์ฟเวอร์)', ME.name + ' (' + ME.id + ')', 'GPS ' + pos.latitude.toFixed(6) + ', ' + pos.longitude.toFixed(6) + ' ±' + Math.round(pos.accuracy) + ' ม.'];
+}
+/** ย่อรูปไม่เกิน 720px แล้วประทับวันเวลา/ชื่อ/พิกัดลงบนรูปเลย (แก้ทีหลังไม่ได้) */
+function stampPhoto(src, w, h, pos) {
+  const k = Math.min(1, 720 / Math.max(w, h)), c = document.createElement('canvas');
+  c.width = Math.round(w * k); c.height = Math.round(h * k);
+  const g = c.getContext('2d'); g.drawImage(src, 0, 0, c.width, c.height);
+  const lines = stampLines(pos), fs = Math.max(12, Math.round(c.width / 26)), lh = Math.round(fs * 1.35), bh = lh * lines.length + 8;
+  g.fillStyle = 'rgba(0,0,0,.62)'; g.fillRect(0, c.height - bh, c.width, bh);
+  g.fillStyle = '#fff'; g.font = 'bold ' + fs + 'px sans-serif'; g.textBaseline = 'top';
+  lines.forEach((x, i) => g.fillText(x, 6, c.height - bh + 4 + i * lh, c.width - 12));
+  return c.toDataURL('image/jpeg', 0.72);
+}
+/** เปิดกล้องสดเท่านั้น (getUserMedia) — ไม่มีทางเลือกรูปจากคลังภาพ */
+function takePhoto(posP) {
+  return new Promise((resolve, reject) => {
+    let pos = null, finished = false;
+    const end = (fn, v) => { if (finished) return; finished = true; stopCam(); closeModal(); fn(v); };
+    posP.then(p => { pos = p; const b = $('#shot'); if (b) { b.disabled = false; b.textContent = 'ถ่ายรูป'; } const g = $('#camst'); if (g) g.textContent = 'พร้อมถ่าย · GPS ±' + Math.round(p.accuracy) + ' ม.'; }, e => end(reject, e));
+    const noCam = () => end(reject, new Error('เปิดกล้องไม่ได้ — ต้องอนุญาตให้ใช้กล้อง (ถ่ายสดเท่านั้น ไม่รับรูปจากคลังภาพ) ถ้าอยู่ในแอป LINE ให้กด "เปิดในเบราว์เซอร์" แล้วลองใหม่'));
+    if (!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia)) return noCam();
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 960 } }, audio: false }).then(stream => {
+      CAMSTREAM = stream;
+      openModal('<h2>ถ่ายรูปลงเวลา</h2><video id="cam" autoplay playsinline muted style="width:100%;border-radius:8px;background:#000;max-height:60vh"></video><p id="camst" class="sm mut">กำลังจับ GPS…</p><p><button class="pri" id="shot" disabled>รอ GPS…</button> <button id="camx">ยกเลิก</button></p>');
+      const v = $('#cam'); v.srcObject = stream; v.play && v.play().catch(() => {});
+      if (pos) { $('#shot').disabled = false; $('#shot').textContent = 'ถ่ายรูป'; $('#camst').textContent = 'พร้อมถ่าย · GPS ±' + Math.round(pos.accuracy) + ' ม.'; }
+      $('#camx').onclick = () => end(reject, new Error('ยกเลิกการถ่ายรูป'));
+      $('#shot').onclick = () => { if (!pos || !v.videoWidth) return; const out = stampPhoto(v, v.videoWidth, v.videoHeight, pos); end(resolve, out); };
+    }).catch(() => noCam());
+  });
+}
+async function doClock() {
+  await run(async () => {
+    try {
+      setSt('กำลังเปิดกล้องและอ่านตำแหน่ง… (ถ้ามีหน้าต่างขออนุญาต ให้กดอนุญาต)');
+      const posP = getPos(); posP.catch(() => {});
+      const photo = await takePhoto(posP), p = await posP;
+      PHOTO = photo; $('#pv').innerHTML = '<img class="pv" src="' + PHOTO + '" style="max-height:200px">';
+      setSt('ตำแหน่งคลาดเคลื่อน ±' + Math.round(p.accuracy) + ' ม. กำลังบันทึก…');
+      const r = await call('clock', [{ lat: p.latitude, lng: p.longitude, acc: p.accuracy, photo: PHOTO }]);
+      setSt('สำเร็จ');
+      toast((r.mode === 'in' ? 'ลงเวลาเข้างาน ' : 'ลงเวลาออกงาน ') + hm(r.at) + (r.lateMin ? ' (สาย ' + r.lateMin + ' นาที)' : '') + (r.unscheduled ? ' — นอกตาราง รอผู้จัดการตรวจสอบ' : ''));
+      viewHome();
+    } catch (e) { setSt('ลงเวลาไม่สำเร็จ: ' + e.message, true); throw e; }   // แสดงข้อความถาวรใต้ปุ่ม (toast ด้านล่างอาจถูก LINE บัง)
+  }, $('#cbtn'));
+}
+function bindCode(b) {
+  run(async () => {
+    const r = await call('lineBindCode');
+    openModal('<h2>ผูกบัญชี LINE</h2><p>รหัสของคุณ</p><p class="big">' + esc(r.code) + '</p><p class="sm">ส่งข้อความนี้ในแชต LINE ของโรงแรม (LINE OA):<br><b>ผูก ' + esc(r.code) + '</b></p><p class="sm mut">รหัสใช้ได้ ' + esc(r.minutes) + ' นาที ครั้งเดียว · หลังผูกแล้วพิมพ์ "ลา" ในแชตเพื่อยื่นใบลา และจะได้รับแจ้งเตือนผลอนุมัติ</p><button class="pri" onclick="closeModal()">ตกลง</button>');
+  }, b);
+}
+function pinForm() {
+  openModal('<h2>เปลี่ยน PIN</h2><label>PIN เดิม</label><input id="op" type="password" inputmode="numeric"><label>PIN ใหม่ (ตัวเลข 6 หลัก)</label><input id="np" type="password" inputmode="numeric"><p><button class="pri" onclick="doPin(this)">บันทึก</button> <button onclick="closeModal()">ยกเลิก</button></p>');
+}
+function doPin(b) { run(async () => { await call('changePin', [$('#op').value, $('#np').value]); closeModal(); toast('เปลี่ยน PIN แล้ว'); }, b); }
+function photoBtns(r) {
+  const k = esc(r.key);
+  return (r.inPhoto ? '<a href="#" onclick="viewPhoto(\'' + k + '\',\'in\');return false">รูปเข้า</a> ' : '') + (r.outPhoto ? '<a href="#" onclick="viewPhoto(\'' + k + '\',\'out\');return false">รูปออก</a>' : '');
+}
+function viewPhoto(key, which) {
+  run(async () => {
+    const r = await call('photo', [key, which]);
+    openModal('<h2>รูปลงเวลา' + (which === 'out' ? 'ออก' : 'เข้า') + '</h2><img src="' + r.dataUrl + '" style="width:100%;border-radius:8px"><p class="sm mut">เห็นได้เฉพาะเจ้าของระบบ · ห้ามบันทึก/แชร์ต่อ</p><p><button onclick="closeModal()">ปิด</button></p>');
+  });
+}
+function recTable(rows, withName) {
+  if (!rows || !rows.length) return '<p class="mut">ไม่มีรายการ</p>';
+  return '<div class="scroll"><table><tr><th>วันที่</th>' + (withName ? '<th>พนักงาน</th>' : '') + '<th>กะ</th><th>เข้า / ออก</th><th>สาย / กลับก่อน</th><th>ชม.ทำงาน</th><th>OT</th><th>สถานะ</th></tr>' +
+    rows.map(r => '<tr><td>' + esc(dmy(r.date)) + (r.holiday ? ' <span class="chip">' + esc(r.holiday) + '</span>' : '') + '</td>' + (withName ? '<td>' + esc(r.name) + '<div class="sm mut">' + esc(r.dept) + '</div></td>' : '') +
+      '<td>' + esc(r.shift || 'นอกตาราง') + '</td><td>' + hm(r.inAt) + ' / ' + hm(r.outAt) + (r.edited ? ' <span class="chip">แก้ไข</span>' : '') + (r.via === 'chat' ? ' <span class="chip" title="ลงเวลาผ่านแชต LINE">💬</span>' : '') + (r.outingMin ? ' <span class="sm">ออกนอก ' + r.outingMin + ' น.</span>' : '') + '</td><td>' + r.lateMin + ' / ' + r.earlyMin + ' นาที</td><td>' + (r.workMin / 60).toFixed(1) + '</td><td>' + (r.otHours ? r.otHours + ' ชม.' : '—') + '</td><td>' + chip(r.status) + (r.leave ? ' <span class="sm">' + esc(r.leave) + '</span>' : '') +
+      (withName && BOOT.photoView && (r.inPhoto || r.outPhoto) ? '<div class="sm">' + photoBtns(r) + '</div>' : '') + '</td></tr>').join('') + '</table></div>';
+}
+
+// ---------- ภาพรวม ----------
+async function viewOverview() {
+  $('#view').innerHTML = '<div class="card mut">กำลังโหลด…</div>';
+  await run(async () => {
+    const o = await call('overview'), c = o.counts;
+    const k = (n, l, cl) => '<div class="card" style="flex:1;min-width:120px;text-align:center"><div class="big ' + (cl || '') + '">' + n + '</div><div class="sm mut">' + l + '</div></div>';
+    $('#view').innerHTML = '<div class="row" style="align-items:stretch">' + k(c.total, 'กะวันนี้') + k((c.ok || 0) + (c.late || 0) + (c.early || 0) + (c.working || 0), 'ลงเวลาแล้ว', 'cov-ok') + k(c.late || 0, 'สาย') + k((c.waiting || 0) + (c.upcoming || 0), 'รอลงเวลา/รอกะ') + k(c.absent || 0, 'ขาดงาน', c.absent ? 'cov-bad' : '') + k(c.leave || 0, 'ลา') + k(o.pendingRequests, 'คำขอรออนุมัติ', o.pendingRequests ? 'cov-bad' : '') + k(o.pendingReview || 0, 'นอกตารางรอตรวจ', o.pendingReview ? 'cov-bad' : '') + '</div>' +
+      (o.pendingReview ? '<div class="card"><b>มี ' + o.pendingReview + ' รายการลงเวลานอกตารางรอตรวจสอบ</b> <button onclick="go(\'close\')">ไปตรวจสอบ</button></div>' : '') + +
+      '<div class="card"><h2>ความครบกะวันนี้ (' + esc(dmy(o.today)) + ')</h2><p>ชั่วโมงทำงานตามตารางรวม <b>' + o.coverage.hours + '</b> ชม. · ' + o.coverage.people + ' กะ · ' +
+      (o.coverage.short.length ? '<span class="cov-bad">ยังไม่ครบ ' + o.coverage.short.length + ' จุด</span>' : '<span class="cov-ok">ครบตามที่ตั้งไว้</span>') + '</p>' +
+      (o.coverage.short.length ? '<ul>' + o.coverage.short.map(s => '<li>' + esc(s.dept) + ' กะ ' + esc(s.shift) + ': มี ' + s.have + ' / ต้องการ ' + s.need + '</li>').join('') + '</ul>' : '') + '</div>' +
+      '<div class="card"><h2>สถานะรายคนวันนี้</h2>' + recTable(o.records, true) + '</div>';
+  });
+}
+
+// ---------- ตารางงาน ----------
+let SC = null, BR = 'M', CH = {}, DEPT = '';
+async function viewSchedule(month) {
+  month = month || (SC && SC.month) || thisMonth();
+  $('#view').innerHTML = '<div class="card mut">กำลังโหลด…</div>';
+  await run(async () => {
+    SC = await call('schedule', [month]); CH = {};
+    if (!isMgr()) return renderMySchedule();
+    renderGrid();
+  });
+}
+async function reloadSched() { SC = await call('schedule', [SC.month]); CH = {}; renderGrid(); }
+function cellVal(id, d) { const k = id + '|' + d; return k in CH ? CH[k] : (SC.cells[k] || ''); }
+function renderGrid() {
+  const sc = document.querySelector('.gridbox'), y = window.scrollY, sl = sc ? sc.scrollLeft : 0, st = sc ? sc.scrollTop : 0;
+  renderGrid_();
+  const nb = document.querySelector('.gridbox'); if (nb) { nb.scrollLeft = sl; nb.scrollTop = st; } window.scrollTo(0, y);
+}
+function renderGrid_() {
+  const depts = Array.from(new Set(SC.emps.map(e => e.dept))).sort(), emps = SC.emps.filter(e => !DEPT || e.dept === DEPT);
+  const n = Object.keys(CH).length;
+  const hdr = SC.dates.map(d => { const w = dowOf(d), h = SC.hol[d]; return '<th class="' + (h ? 'hol' : w === 0 ? 'sun' : '') + '" title="' + esc(h || '') + '" onclick="paintCol(\'' + d + '\')">' + +d.slice(8) + '<br>' + THDOW[w] + '</th>'; }).join('');
+  const rows = emps.map(e => '<tr><td class="name" onclick="paintRow(\'' + esc(e.id) + '\')">' + esc(e.name) + '<div class="sm mut">' + esc(e.dept) + ' · ' + esc(e.hours) + ' ชม.</div>' + offBadge(e) + '</td>' +
+    SC.dates.map(d => { const v = cellVal(e.id, d), k = e.id + '|' + d; return '<td id="c|' + esc(k) + '" class="c ' + (SC.hol[d] ? 'hol ' : '') + (v ? 'sh-' + (v === 'OFF' ? 'OFF' : /^[MAND]$/.test(v) ? v : 'x') : '') + (k in CH ? ' chg' : '') + '" onclick="paint(\'' + esc(e.id) + '\',\'' + d + '\')">' + esc(v === 'OFF' ? 'หยุด' : v) + '</td>'; }).join('') + '</tr>').join('');
+  const foot = '<tr><td class="name">ชั่วโมงรวม/วัน</td>' + SC.dates.map(d => '<td>' + (SC.coverage[d] ? SC.coverage[d].hours : '') + '</td>').join('') + '</tr><tr><td class="name">ครบ 24 ชม. (FO)</td>' + SC.dates.map(d => { const f = SC.fo24 && SC.fo24[d]; return '<td onclick="foDetail(\'' + d + '\')" style="cursor:pointer">' + (f && f.gaps.length ? '<span class="cov-bad">⚠</span>' : '<span class="cov-ok">✓</span>') + '</td>'; }).join('') + '</tr><tr><td class="name">ครบกะ?</td>' +
+    SC.dates.map(d => { const c = SC.coverage[d]; return '<td onclick="covDetail(\'' + d + '\')" style="cursor:pointer">' + (c && c.short.length ? '<span class="cov-bad">⚠' + c.short.length + '</span>' : '<span class="cov-ok">✓</span>') + '</td>'; }).join('') + '</tr>';
+  $('#view').innerHTML = '<div class="card"><h2>ตารางงานรายเดือน</h2><div class="row">' + '<div>' + monthInput('mm', SC.month, 'viewSchedule(this.value)') + '</div>' +
+    '<div><select id="dp" onchange="DEPT=this.value;renderGrid()"><option value="">ทุกแผนก</option>' + depts.map(d => '<option ' + (d === DEPT ? 'selected' : '') + '>' + esc(d) + '</option>').join('') + '</select></div>' +
+    '<div><button onclick="copyForm()">คัดลอกจากเดือนก่อน</button></div></div>' +
+    '<h3>เลือกกะแล้วแตะช่องเพื่อจัด · แตะวันที่ = ทั้งแผนกในวันนั้น · แตะชื่อ = ทั้งเดือนของคนนั้น</h3><div class="brush row" style="gap:6px">' +
+    SC.shifts.map(s => '<button data-b="' + esc(s.code) + '" class="' + (BR === s.code ? 'on ' : '') + 'sh-' + (/^[MAND]$/.test(s.code) ? s.code : 'x') + '" style="flex:0 0 auto" onclick="setBrush(\'' + esc(s.code) + '\')">' + esc(s.code) + ' ' + esc(s.start) + '–' + esc(s.end) + '</button>').join('') +
+'<button data-b="OFF" class="sh-OFF ' + (BR === 'OFF' ? 'on' : '') + '" style="flex:0 0 auto" onclick="setBrush(\'OFF\')">หยุด (วันหยุดพนักงาน)</button>' +
+    '<button data-b="" class="' + (BR === '' ? 'on' : '') + '" style="flex:0 0 auto" onclick="setBrush(\'\')">ล้างช่อง</button></div>' +
+    '<p class="sm mut">ช่อง "หยุด" = วันหยุดของพนักงานคนนั้น (รายเดือนควรได้ ≥ สัปดาห์ละ 1 วัน เลื่อนข้ามสัปดาห์ได้ เช่น สัปดาห์นี้ไม่หยุด สัปดาห์หน้าหยุด 2 วัน) · ช่องว่าง = ยังไม่ได้จัด · หัวคอลัมน์สีแดง = วันหยุดนักขัตฤกษ์ (จัดกะวันนั้น = ทำงานวันหยุด) · วันที่มีการลงเวลาแล้วแก้ไม่ได้</p>' +
+    '<div class="row" style="align-items:end"><div><label>วันหยุดนักขัตฤกษ์ (เพิ่ม/ลบ)</label><input type="date" id="hd"></div><div><label>ชื่อวันหยุด (เว้นว่าง = ลบ)</label><input id="hn" placeholder="เช่น วันสงกรานต์"></div><div><button onclick="holidaySave(this)">บันทึกวันหยุด</button></div></div>' +
+    foWarn() + '<div class="scroll gridbox"><table class="grid"><tr><th class="name">พนักงาน</th>' + hdr + '</tr>' + rows + foot + '</table></div>' +
+    '<p><button class="pri" id="sbtn" onclick="saveGrid()" ' + (n ? '' : 'disabled') + '>บันทึกการเปลี่ยนแปลง (' + n + ')</button> <button id="cbtn" onclick="CH={};renderGrid()" ' + (n ? '' : 'disabled') + '>ยกเลิกที่ยังไม่บันทึก</button></p><div id="cdet"></div></div>';
+}
+function foWarn() {
+  const gd = SC.dates.filter(d => SC.fo24 && SC.fo24[d].gaps.length), nr = SC.nightRest || [];
+  if (!gd.length && !nr.length) return '<p class="sm cov-ok">✓ แผนก FO มีคนครบ 24 ชม. ทุกวัน และกะดึกได้พักตามกติกา</p>';
+  return '<div class="sm" style="border:1px solid var(--bad);border-radius:8px;padding:8px;margin:8px 0">' +
+    (gd.length ? '<b class="cov-bad">FO ไม่ครบ 24 ชม. ' + gd.length + ' วัน</b> (แตะ ⚠ ใต้ตารางดูช่วงเวลา): ' + gd.slice(0, 8).map(d => esc(dmy(d)) + ' ' + esc(SC.fo24[d].gaps.join(', '))).join(' · ') + (gd.length > 8 ? ' …' : '') : '') +
+    (nr.length ? '<div><b class="cov-bad">กะดึกไม่ได้พัก ' + nr.length + ' รายการ</b> (คนที่ทำกะข้ามคืน วันถัดไปต้องหยุดหรือทำกะข้ามคืนต่อ): ' + nr.slice(0, 8).map(x => esc(x.name) + ' ' + esc(dmy(x.date)) + ' (ต่อกะ ' + esc(x.shift) + ')').join(' · ') + (nr.length > 8 ? ' …' : '') + '</div>' : '') + '</div>';
+}
+function foDetail(d) {
+  const f = SC.fo24 && SC.fo24[d];
+  $('#cdet').innerHTML = '<div class="card"><b>' + esc(dmy(d)) + ' — แผนกที่ต้องครบ 24 ชม. (' + esc(SC.cover24Depts) + ')</b><p>' + (f && f.gaps.length ? '<span class="cov-bad">ไม่มีคนในช่วง: ' + esc(f.gaps.join(', ')) + '</span>' : '<span class="cov-ok">มีคนครบ 24 ชม.</span>') + '</p></div>';
+}
+function offBadge(e) {
+  if (e.payType === 'hourly') return '<div class="sm"><span class="chip">PT</span></div>';
+  if (e.payType === 'daily') return '<div class="sm"><span class="chip">รายวัน</span></div>';
+  const low = e.offDays < e.offRequired, long = e.maxRun > (SC.maxConsec || 12);
+  return '<div class="sm" title="หยุดต่อสัปดาห์: ' + esc(e.weekOff.join(', ')) + '"><span class="' + (low ? 'cov-bad' : 'cov-ok') + '">หยุด ' + e.offDays + '/' + e.offRequired + '</span>' + (long ? ' <span class="cov-bad">ติดกัน ' + e.maxRun + ' วัน</span>' : '') + '</div>';
+}
+function holidaySave(b) {
+  const d = $('#hd').value; if (!d) return toast('เลือกวันที่');
+  if (Object.keys(CH).length) return toast('กรุณากดบันทึกตารางที่แก้ไขก่อน');
+  const name = $('#hn').value.trim();
+  if (!name && !SC.hol[d] && !confirm('วันนี้ยังไม่ใช่วันหยุดนักขัตฤกษ์ ต้องใส่ชื่อวันหยุด')) return;
+  if (!name && !SC.hol[d]) return;
+  run(async () => { await call('holidaySet', [d, name]); toast(name ? 'บันทึกวันหยุดแล้ว' : 'ลบวันหยุดแล้ว'); (d.slice(0, 7) === SC.month ? reloadSched() : viewSchedule(d.slice(0, 7))); }, b);
+}
+function toggleCell(k) { const id = k.split('|')[0], d = k.split('|')[1]; if ((SC.cells[k] || '') === BR) delete CH[k]; else CH[k] = BR; refreshCell(id, d); }
+function refreshCell(id, d) {
+  const k = id + '|' + d, td = document.getElementById('c|' + k); if (!td) return;
+  const v = cellVal(id, d);
+  td.className = 'c ' + (SC.hol[d] ? 'hol ' : '') + (v ? 'sh-' + (v === 'OFF' ? 'OFF' : /^[MAND]$/.test(v) ? v : 'x') : '') + (k in CH ? ' chg' : '');
+  td.textContent = v === 'OFF' ? 'หยุด' : v;
+}
+function updSave() {
+  const n = Object.keys(CH).length, b = document.getElementById('sbtn'), c = document.getElementById('cbtn');
+  if (b) { b.disabled = !n; b.textContent = 'บันทึกการเปลี่ยนแปลง (' + n + ')'; } if (c) c.disabled = !n;
+}
+function paint(id, d) { toggleCell(id + '|' + d); updSave(); }
+function paintRow(id) { SC.dates.forEach(d => toggleCell(id + '|' + d)); updSave(); }
+function paintCol(d) { SC.emps.filter(e => !DEPT || e.dept === DEPT).forEach(e => toggleCell(e.id + '|' + d)); updSave(); }
+function setBrush(code) { BR = code; document.querySelectorAll('.brush button').forEach(b => b.classList.toggle('on', b.dataset.b === code)); }
+function covDetail(d) {
+  const c = SC.coverage[d]; if (!c) return;
+  $('#cdet').innerHTML = '<div class="card"><b>' + esc(d) + '</b> · ' + c.people + ' กะ · ' + c.hours + ' ชม.' + (c.short.length ? '<ul>' + c.short.map(s => '<li class="cov-bad">' + esc(s.dept) + ' กะ ' + esc(s.shift) + ': มี ' + s.have + ' / ต้องการ ' + s.need + '</li>').join('') + '</ul>' : ' · <span class="cov-ok">ครบตามที่ตั้งไว้</span>') + '</div>';
+}
+function saveGrid() {
+  run(async () => {
+    const ch = Object.keys(CH).map(k => { const p = k.split('|'); return { empId: p[0], date: p[1], shift: CH[k] }; });
+    const r = await call('saveSchedule', [ch]);
+    toast('บันทึก ' + r.applied + ' ช่อง' + (r.blocked ? ' · ข้าม ' + r.blocked + ' ช่อง (มีการลงเวลาแล้ว)' : ''), !!r.blocked);
+    SC = await call('schedule', [SC.month]); CH = {};          // โหลดใหม่แล้ววาดทับโดยคงตำแหน่งการเลื่อนไว้
+    renderGrid();
+  }, $('#sbtn'));
+}
+function copyForm() {
+  const p = new Date(SC.month + '-01T12:00:00+07:00'); p.setUTCMonth(p.getUTCMonth() - 1);
+  openModal('<h2>คัดลอกตารางจากเดือนก่อน</h2><p class="sm mut">คัดลอกตามวันในสัปดาห์เดิม (เลื่อนทีละ 4 สัปดาห์) ไปยังเดือน ' + esc(SC.month) + '</p><label>คัดลอกจากเดือน</label><input type="month" id="fm" value="' + p.toISOString().slice(0, 7) + '"><label><input type="checkbox" id="ow"> เขียนทับช่องที่จัดไว้แล้ว</label><p><button class="pri" onclick="doCopy(this)">คัดลอก</button> <button onclick="closeModal()">ยกเลิก</button></p>');
+}
+function doCopy(b) { run(async () => { const r = await call('copyMonth', [$('#fm').value, SC.month, $('#ow').checked]); closeModal(); toast('คัดลอก ' + r.applied + ' ช่อง'); reloadSched(); }, b); }
+function renderMySchedule() {
+  const mine = SC.dates.filter(d => SC.cells[ME.id + '|' + d]);
+  const sh = {}; SC.shifts.forEach(s => sh[s.code] = s);
+  $('#view').innerHTML = '<div class="card"><h2>ตารางงานของฉัน</h2>' + monthInput('mm', SC.month, 'viewSchedule(this.value)') + '<p>รวม ' + mine.length + ' กะ · ' + (SC.emps[0] ? SC.emps[0].hours : 0) + ' ชม./เดือน</p>' +
+    '<div class="scroll"><table><tr><th>วันที่</th><th>วัน</th><th>กะ</th><th>เวลา</th></tr>' + SC.dates.map(d => { const c = SC.cells[ME.id + '|' + d], s = sh[c]; return '<tr><td>' + esc(dmy(d)) + (SC.hol[d] ? ' <span class="chip">' + esc(SC.hol[d]) + '</span>' : '') + '</td><td>' + THDOW[dowOf(d)] + '</td><td>' + (c === 'OFF' ? '<b class="cov-bad">วันหยุด</b>' : c ? esc(c) : '<span class="mut">-</span>') + '</td><td>' + (s ? esc(s.start) + '–' + esc(s.end) : '') + '</td></tr>'; }).join('') + '</table></div></div>';
+}
+
+// ---------- คำขอ ----------
+async function viewRequests() {
+  $('#view').innerHTML = '<div class="card mut">กำลังโหลด…</div>';
+  await run(async () => {
+    const list = await call('listRequests', ['']);
+    const TY = { leave: 'ลา', ot: 'OT', timefix: 'แก้เวลา', swapoff: 'สลับวันหยุด', swapshift: 'สลับกะ' }, SS = { pending: 'รออนุมัติ', approved: 'อนุมัติแล้ว', rejected: 'ไม่อนุมัติ' };
+    $('#view').innerHTML = '<div class="card"><h2>ยื่นคำขอ</h2><p class="sm mut">ลาและ OT ต้องยื่นและให้ผู้จัดการกดอนุมัติเท่านั้น · ไม่มีใบลาที่อนุมัติ = นับเป็นขาดงาน · OT ที่ไม่ได้อนุมัติไม่นับ</p>' +
+      '<div class="row"><div><label>ประเภท</label><select id="rt" onchange="reqFields()"><option value="leave">ใบลา</option><option value="ot">ขอ OT</option><option value="timefix">ขอแก้เวลา (ลืมลง)</option><option value="swapoff">ขอสลับวันหยุด</option><option value="swapshift">ขอสลับกะ / เปลี่ยนเวลาเข้างาน</option></select></div>' +
+      (isMgr() ? '<div><label>แทนพนักงาน (ถ้ามี)</label><select id="re"><option value="">ตัวฉันเอง</option></select></div>' : '') + '</div><div id="rf"></div><p><button class="pri" id="rbtn" onclick="sendReq()">ส่งคำขอ</button></p></div>' +
+      '<div class="card"><h2>รายการคำขอ</h2><div class="scroll"><table><tr><th>ประเภท</th><th>พนักงาน</th><th>วันที่</th><th>รายละเอียด</th><th>สถานะ</th><th></th></tr>' +
+      (list.length ? list.map(r => '<tr><td>' + TY[r.type] + '</td><td>' + esc(r.empName) + '</td><td>' + esc(dmy(r.date)) + (r.dateTo && r.dateTo !== r.date && r.type !== 'swapoff' ? '–' + esc(dmy(r.dateTo)) : '') + '</td><td>' +
+        (r.type === 'swapshift' ? (r.partnerId ? 'สลับกะกับ ' + esc(r.partnerName || r.partnerId) : 'เปลี่ยนเป็นกะ ' + esc(r.newShift)) : r.type === 'swapoff' ? 'หยุดวันที่ ' + esc(dmy(r.date)) + ' → มาทำงานแทนวันที่ ' + esc(dmy(r.dateTo)) : r.type === 'leave' ? esc(r.leaveType) : r.type === 'ot' ? esc(r.minutes) + ' นาที' : 'เข้า ' + esc(r.newIn || '—') + ' / ออก ' + esc(r.newOut || '—')) + '<div class="sm mut">' + esc(r.reason) + '</div>' + (r.attachment ? '<a href="#" class="sm" onclick="viewAtt(\'' + esc(r.id) + '\');return false">📎 เอกสารแนบ</a>' : '') + '</td><td>' + (r.status === 'pending' ? '<span class="chip working">รออนุมัติ</span>' : r.status === 'approved' ? '<span class="chip ok">' + SS.approved + '</span>' : '<span class="chip absent">' + SS.rejected + '</span>') + (r.decisionNote ? '<div class="sm mut">' + esc(r.decisionNote) + '</div>' : '') + '</td><td>' +
+        (isMgr() && r.status === 'pending' && r.empId !== ME.id && r.createdBy !== ME.id ? '<button class="pri" onclick="decide(\'' + esc(r.id) + '\',true,this)">อนุมัติ</button> <button class="bad" onclick="decide(\'' + esc(r.id) + '\',false,this)">ไม่อนุมัติ</button>' : '') + '</td></tr>').join('') : '<tr><td colspan="6" class="mut">ยังไม่มีคำขอ</td></tr>') + '</table></div></div>' +
+      (isAdmin() ? '<div class="card"><h2>แอดมินแก้เวลาเข้า–ออกโดยตรง</h2><p class="sm mut">ต้องระบุเหตุผล และบันทึกลงประวัติ</p><div class="row"><div><label>รหัสพนักงาน</label><input id="ae"></div><div><label>วันที่เริ่มกะ</label><input id="ad" type="date"></div><div><label>เวลาเข้า</label><input id="ai" type="time"></div><div><label>เวลาออก</label><input id="ao" type="time"></div></div><label>เหตุผล</label><input id="ar" style="width:100%"><p><button class="pri" onclick="adminEdit(this)">บันทึกการแก้เวลา</button></p></div>' : '');
+    if (isMgr()) { try { const dq = await call('deviceRequests'); if (dq.length) $('#view').insertAdjacentHTML('afterbegin', '<div class="card"><h2>คำขอเปลี่ยนเครื่องล็อกอิน (' + dq.length + ')</h2><p class="sm mut">พนักงานเข้าจากมือถือเครื่องใหม่ (เช่น เปลี่ยนมือถือ หรือ iPhone ล้างข้อมูลเว็บ) — อนุมัติเฉพาะเมื่อแน่ใจว่าเป็นตัวพนักงานเอง</p>' + dq.map(z => '<div style="margin:6px 0">' + esc(z.name) + ' <span class="mut sm">(' + esc(z.id) + ' · ' + esc(z.dept) + ')</span> <button class="pri" onclick="devDecide(\'' + esc(z.id) + '\',true)">อนุมัติเครื่องใหม่</button> <button onclick="devDecide(\'' + esc(z.id) + '\',false)">ไม่อนุมัติ</button></div>').join('') + '</div>'); } catch (e) { /* ข้าม */ } }
+    if (isMgr()) { const rep = await call('empList'); $('#re').innerHTML += rep.map(e => '<option value="' + esc(e.id) + '">' + esc(e.name) + '</option>').join(''); }
+    reqFields();
+  });
+}
+async function swapLoad() {
+  const d = $('#rd').value, box = $('#swbox'); if (!box) return;
+  box.innerHTML = '<span class="mut sm">กำลังโหลด…</span>';
+  try {
+    const o = await call('swapOptions', [d]);
+    if (!o.mine) { box.innerHTML = '<p class="cov-bad sm">วันที่เลือกคุณไม่มีกะในตาราง (ถ้าอยากมาทำงานวันหยุด ให้ใช้ "ขอสลับวันหยุด")</p><input type="hidden" id="rpar"><input type="hidden" id="rns">'; return; }
+    box.innerHTML = '<p class="sm">กะของคุณวันนั้น: <b>' + esc(o.mine) + '</b></p><div class="row"><div><label>วิธีสลับ</label><select id="rpar" onchange="$(\'#rnsw\').style.display=this.value?\'none\':\'\'">' +
+      '<option value="">เปลี่ยนเวลาเข้างานของฉัน (เลือกกะใหม่)</option>' + o.colleagues.map(c => '<option value="' + esc(c.id) + '">สลับกับ ' + esc(c.name) + ' (กะ ' + esc(c.shift) + ')</option>').join('') + '</select></div>' +
+      '<div id="rnsw"><label>กะที่ต้องการ</label><select id="rns">' + o.shifts.filter(x => x.code !== o.mine).map(x => '<option value="' + esc(x.code) + '">' + esc(x.code) + ' ' + esc(x.name) + ' ' + esc(x.start) + '–' + esc(x.end) + '</option>').join('') + '</select></div></div>';
+  } catch (e) { box.innerHTML = '<p class="cov-bad sm">' + esc(e.message) + '</p><input type="hidden" id="rpar"><input type="hidden" id="rns">'; }
+}
+function reqFields() {
+  const t = $('#rt').value, today = BOOT.today;
+  $('#rf').innerHTML = '<div class="row"><div><label>วันที่</label><input id="rd" type="date" value="' + today + '"></div>' +
+    (t === 'leave' ? '<div><label>ถึงวันที่</label><input id="rd2" type="date" value="' + today + '"></div><div><label>ประเภทการลา</label><select id="rl">' + BOOT.leaveTypes.map(x => '<option>' + esc(x) + '</option>').join('') + '</select></div><div style="flex-basis:100%"><label>แนบเอกสารประกอบ (ใบรับรองแพทย์ ฯลฯ) — ไม่บังคับ</label><input type="file" id="ra" accept="image/*,application/pdf"></div>' : '') +
+    (t === 'swapshift' ? '<div id="swbox" style="flex-basis:100%"></div><p class="sm mut" style="flex-basis:100%">ผู้จัดการต้องอนุมัติ · สลับได้เฉพาะวันที่ยังไม่ลงเวลา · สลับกับเพื่อนได้เฉพาะแผนกเดียวกัน</p>' : '') +
+    (t === 'ot' ? '<div><label>ขอ OT (นาที, ขั้นต่ำ 60)</label><input id="rm" type="number" min="60" step="30" value="60"></div>' : '') +
+    (t === 'swapoff' ? '<div><label>วันหยุดเดิมที่จะมาทำงานแทน</label><input id="rd2" type="date"></div><p class="sm mut" style="flex-basis:100%">"วันที่" ด้านบน = วันที่ต้องการหยุดแทน (วันนั้นต้องมีกะ) · เมื่อผู้จัดการอนุมัติ ระบบสลับตารางให้อัตโนมัติ · ถ้าสัปดาห์ไหนไม่ได้หยุด ให้ขอหยุดชดเชย 2 วันในสัปดาห์ถัดไป ไม่งั้นนับเป็นทำงานวันหยุด</p>' : '') +
+    (t === 'timefix' ? '<div><label>เวลาเข้าที่ถูกต้อง</label><input id="rn1" type="time"></div><div><label>เวลาออกที่ถูกต้อง</label><input id="rn2" type="time"></div>' : '') + '</div><label>เหตุผล / หลักฐาน</label><input id="rr" style="width:100%">';
+  if (t === 'swapshift') { $('#rd').onchange = swapLoad; swapLoad(); }
+}
+function readAttach(fl) {
+  return new Promise((res, rej) => {
+    if (fl.type === 'application/pdf') {
+      if (fl.size > 2800000) return rej(new Error('ไฟล์แนบใหญ่เกินไป (ไม่เกิน 3 MB)'));
+      const fr = new FileReader(); fr.onload = () => res(fr.result); fr.onerror = () => rej(new Error('อ่านไฟล์ไม่ได้')); return fr.readAsDataURL(fl);
+    }
+    if (!/^image\//.test(fl.type)) return rej(new Error('แนบได้เฉพาะรูปภาพหรือ PDF'));
+    const img = new Image(), url = URL.createObjectURL(fl);
+    img.onload = () => { const k = Math.min(1, 1280 / Math.max(img.width, img.height)), c = document.createElement('canvas'); c.width = Math.round(img.width * k); c.height = Math.round(img.height * k); c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); URL.revokeObjectURL(url); res(c.toDataURL('image/jpeg', 0.8)); };
+    img.onerror = () => rej(new Error('อ่านรูปไม่ได้'));
+    img.src = url;
+  });
+}
+function viewAtt(id) {
+  run(async () => {
+    const r = await call('attachment', [id]);
+    openModal('<h2>เอกสารแนบ</h2>' + (/^data:application\/pdf/.test(r.dataUrl) ? '<p><a href="' + r.dataUrl + '" download="leave-document.pdf">ดาวน์โหลดไฟล์ PDF</a></p>' : '<img src="' + r.dataUrl + '" style="width:100%;border-radius:8px">') + '<p class="sm mut">ข้อมูลส่วนตัว ห้ามแชร์ต่อ</p><p><button onclick="closeModal()">ปิด</button></p>');
+  });
+}
+function devDecide(id, ok) { run(async () => { await call('deviceDecide', [id, ok]); toast(ok ? 'อนุมัติเครื่องใหม่แล้ว' : 'ปฏิเสธแล้ว'); viewRequests(); }); }
+function sendReq() {
+  run(async () => {
+    const t = $('#rt').value, p = { type: t, date: $('#rd').value, reason: $('#rr').value, empId: $('#re') ? $('#re').value : '' };
+    if (t === 'leave') { p.dateTo = $('#rd2').value; p.leaveType = $('#rl').value; const fl = $('#ra') && $('#ra').files[0]; if (fl) p.attachment = await readAttach(fl); }
+    if (t === 'swapoff') p.dateTo = $('#rd2').value;
+    if (t === 'swapshift') { p.partnerId = $('#rpar').value; p.newShift = $('#rns') ? $('#rns').value : ''; }
+    if (t === 'ot') p.minutes = $('#rm').value;
+    if (t === 'timefix') { p.newIn = $('#rn1').value; p.newOut = $('#rn2').value; }
+    await call('createRequest', [p]); toast('ส่งคำขอแล้ว รอผู้จัดการอนุมัติ'); viewRequests();
+  }, $('#rbtn'));
+}
+function decide(id, ok, b) {
+  const note = ok ? '' : (prompt('เหตุผลที่ไม่อนุมัติ (ถ้ามี)') || '');
+  run(async () => { await call('decideRequest', [id, ok, note]); toast(ok ? 'อนุมัติแล้ว' : 'ไม่อนุมัติแล้ว'); viewRequests(); }, b);
+}
+function adminEdit(b) {
+  run(async () => { await call('adminEditTime', [{ empId: $('#ae').value, date: $('#ad').value, newIn: $('#ai').value, newOut: $('#ao').value, reason: $('#ar').value }]); toast('แก้เวลาแล้ว'); }, b);
+}
+
+// ---------- KPI ----------
+let KM = '';
+async function viewKpi(month) {
+  KM = month || KM || thisMonth();
+  $('#view').innerHTML = '<div class="card mut">กำลังโหลด…</div>';
+  await run(async () => {
+    if (!isMgr()) {
+      const k = await call('kpiGet', [KM, ME.id]);
+      $('#view').innerHTML = '<div class="card"><h2>KPI ของฉัน</h2>' + monthInput('km', KM, 'viewKpi(this.value)') + (k.status === 'approved' ?
+        '<div class="big">' + esc(k.total) + ' <span class="mut sm">/ 100</span></div>' : '<p class="mut">ยังไม่ประกาศผล (จะแสดงคะแนนเมื่อสิ้นเดือนและผู้จัดการอนุมัติแล้ว)</p>') + '</div>';
+      return;
+    }
+    const list = await call('kpiList', [KM]);
+    $('#view').innerHTML = '<div class="card"><h2>ประเมิน KPI</h2><p class="sm mut">ผลงาน 60% · ประสานงาน 25% · ความปลอดภัยและพัฒนา 15% (แก้แบบประเมินได้ที่ตั้งค่า) · ห้ามประเมิน/อนุมัติตนเอง</p>' + monthInput('km', KM, 'viewKpi(this.value)') +
+      '<div class="scroll"><table><tr><th>พนักงาน</th><th>แผนก</th><th>สาย (นาที)</th><th>ขาด (วัน)</th><th>คะแนน</th><th>สถานะ</th><th></th></tr>' + list.map(k => '<tr><td>' + esc(k.name) + '<div class="sm mut">' + esc(k.position) + '</div></td><td>' + esc(k.dept) + '</td><td>' + k.late + '</td><td>' + k.absent + '</td><td>' + esc(k.total) + '</td><td>' +
+        (k.status === 'approved' ? '<span class="chip ok">อนุมัติแล้ว</span>' : k.status === 'draft' ? '<span class="chip working">ร่าง</span>' : '<span class="chip">ยังไม่ประเมิน</span>') + '</td><td>' + (k.id !== ME.id ? '<button onclick="kpiForm(\'' + esc(k.id) + '\')">เปิดแบบประเมิน</button>' : '') + '</td></tr>').join('') + '</table></div></div>';
+  });
+}
+async function kpiForm(id) {
+  await run(async () => {
+    const k = await call('kpiGet', [KM, id]), a = k.attendance || {};
+    openModal('<h2>' + esc(k.emp.name) + '</h2><div class="sm mut">' + esc(k.emp.position) + ' · ' + esc(k.emp.dept) + ' · ' + esc(KM) + '</div>' +
+      '<p class="sm">ข้อมูลเวลางานเดือนนี้: สาย ' + (a.lateMin || 0) + ' นาที · ขาด ' + (a.absentDays || 0) + ' วัน · ลา ' + (a.leaveDays || 0) + ' วัน · ชม.ทำงาน ' + (a.workHours || 0) + '</p>' +
+      k.criteria.map((c, i) => '<div class="kpi"><span>' + esc(c.criterion) + ' <span class="sm mut">(' + c.weight + '%)</span></span><input type="number" min="0" max="100" class="ks" data-c="' + esc(c.criterion) + '" value="' + esc(k.scores[c.criterion] == null ? '' : k.scores[c.criterion]) + '"></div>').join('') +
+      '<label>หลักฐานผลงาน ข้อจำกัด และสิ่งที่ต้องปรับปรุง (ต้องกรอกก่อนอนุมัติ)</label><textarea id="kev" rows="3" style="width:100%">' + esc(k.evidence || '') + '</textarea><p class="sm mut">ใช้หลักฐานจริง เปิดให้พนักงานชี้แจง ไม่ใช้คะแนนหักค่าเสียหายและไม่ประเมินตนเอง</p>' +
+      '<p><button onclick="kpiSave(\'' + esc(id) + '\',false,this)">บันทึกร่าง</button> <button class="pri" onclick="kpiSave(\'' + esc(id) + '\',true,this)">อนุมัติคะแนน</button> <button onclick="closeModal()">ปิด</button></p>');
+  });
+}
+function kpiSave(id, approve, b) {
+  run(async () => {
+    const scores = {}; document.querySelectorAll('.ks').forEach(i => scores[i.dataset.c] = i.value === '' ? NaN : Number(i.value));
+    const r = await call('kpiSave', [{ month: KM, empId: id, scores: scores, evidence: $('#kev').value, approve: approve }]);
+    closeModal(); toast('บันทึกแล้ว คะแนนรวม ' + r.total); viewKpi(KM);
+  }, b);
+}
+
+// ---------- รายงาน ----------
+let RM = '';
+async function viewReport(month) {
+  RM = month || RM || thisMonth();
+  $('#view').innerHTML = '<div class="card mut">กำลังโหลด…</div>';
+  await run(async () => {
+    const [rows, ps] = await Promise.all([call('report', [RM]), call('periodStatus', [RM])]);
+    rows.forEach(r => { r.payType = r.payType === 'hourly' ? 'PT' : r.payType === 'daily' ? 'รายวัน' : 'รายเดือน'; if (r.resigned) r.name += ' (ลาออก ' + r.resigned + ')'; });
+    const cols0 = [['id', 'รหัส'], ['name', 'ชื่อ'], ['dept', 'แผนก'], ['scheduledDays', 'วันตามตาราง'], ['presentDays', 'วันทำงาน(มาจริง)'], ['payType', 'ประเภท'], ['ptHours', 'ชม.PT รวม'], ['ptDays', 'วัน PT (เกิน 8 ชม.=1 วัน)'], ['offDays', 'วันหยุดที่กำหนด'], ['offDeficit', 'วันหยุดที่ขาด'], ['offWorkApproved', 'ทำงานวันหยุด(ชดเชยไม่ครบ·อนุมัติ)'], ['offRequired', 'ควรได้หยุด(วัน)'], ['offShortage', 'หยุดขาด(วัน)'], ['maxConsec', 'ทำติดกันสูงสุด(วัน)'], ['holidayCount', 'วันหยุดนักขัตฯ ในเดือน'], ['holidayWorkDays', 'ทำงานวันหยุด'], ['workHours', 'ชม.ทำงาน'], ['lateCount', 'สายรวม(วัน)'], ['late1_4', 'สาย 1-4 น.(ครั้ง)'], ['late5_10', 'สาย 5-10 น.(ครั้ง)'], ['late11_20', 'สาย 11-20 น.(ครั้ง)'], ['late21_40', 'สาย 21-40 น.(ครั้ง)'], ['late41', 'สาย 41+ น.(ครั้ง)'], ['lateMin', 'สายรวม(นาที)'], ['earlyDays', 'ออกก่อน(วัน)'], ['lateQuotaMin', 'โควต้าสาย'], ['lateOverQuotaMin', 'สายเกินโควต้า'], ['earlyMin', 'กลับก่อน(นาที)'], ['absentDays', 'ขาดงาน(วัน)'], ['leaveDays', 'ลา(วัน)'], ['missingOut', 'ลืมลงออก'], ['otHours', 'OT(ชม.)'], ['reviewPending', 'นอกตารางรอตรวจ'], ['kpi', 'KPI'], ['baseSalary', 'เงินเดือน'], ['dailyRate', 'ค่าจ้างรายวัน'], ['basePay', 'ค่าแรงพื้นฐานงวดนี้'], ['lateDeduct', 'หักสาย'], ['absentDeduct', 'หักขาด/ลาไม่รับค่าจ้าง'], ['otPay', 'ค่า OT'], ['holidayPay', 'ค่าทำงานวันหยุด'], ['net', 'สุทธิโดยประมาณ']];
+    const cols = cols0.filter(c => !rows.length || c[0] in rows[0]);   // คอลัมน์เงินจะไม่มีมาให้ถ้าไม่ใช่แอดมิน
+    window.__rep = { cols: cols, rows: rows };
+    $('#view').innerHTML = '<div class="card"><h2>สรุปรายเดือน (ขาด ลา มาสาย OT)</h2>' + monthInput('rm', RM, 'viewReport(this.value)') + ' ' +
+      (ps.status === 'closed' ? '<span class="chip ok">ปิดรอบแล้ว</span>' : '<span class="chip working">ยังไม่ปิดรอบ — ตัวเลขอาจเปลี่ยน · ตรวจที่แท็บ "ตรวจ/ปิดรอบเดือน" ก่อนใช้คิดเงินเดือน</span>') + ' <button onclick="csv()">ส่งออก CSV</button> <button onclick="viewDaily()">ดูรายวัน</button>' +
+      '<p class="sm mut">ตัวเลขเงินเป็นค่าประมาณจากเงินเดือน÷30÷8 ชม. ตามอัตราที่ตั้งไว้ — ควรให้ฝ่ายบัญชีตรวจสอบก่อนจ่ายจริง · สายหักเฉพาะส่วนที่เกินโควต้าของตำแหน่ง</p><div class="scroll"><table><tr>' + cols.map(c => '<th>' + c[1] + '</th>').join('') + '</tr>' +
+      rows.map(r => '<tr>' + cols.map(c => '<td>' + esc(r[c[0]]) + '</td>').join('') + '</tr>').join('') + '</table></div></div><div id="daily"></div>';
+  });
+}
+async function viewDaily() { await run(async () => { const r = await call('monthRecords', [RM]); $('#daily').innerHTML = '<div class="card"><h2>รายวัน ' + esc(RM) + '</h2>' + recTable(r, true) + '</div>'; }); }
+function csv() {
+  const r = window.__rep, q = v => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const t = '﻿' + [r.cols.map(c => q(c[1])).join(',')].concat(r.rows.map(x => r.cols.map(c => q(x[c[0]])).join(','))).join('\r\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([t], { type: 'text/csv;charset=utf-8' })); a.download = 'hr-' + RM + '.csv'; a.click();
+}
+
+// ---------- ตรวจ/ปิดรอบเดือน ----------
+let CM = '', CL = null;
+async function viewClose(month) {
+  CM = month || CM || thisMonth();
+  $('#view').innerHTML = '<div class="card mut">กำลังโหลด…</div>';
+  await run(async () => {
+    const p = await call('period', [CM]), b = p.blockers, closed = p.status === 'closed'; CL = p;
+    const ok = (good, txt) => '<li>' + (good ? '<span class="cov-ok">✓</span> ' : '<span class="cov-bad">✗</span> ') + txt + '</li>';
+    const times = r => hm(r.inAt) + ' – ' + hm(r.outAt);
+    const photos = r => BOOT.photoView ? photoBtns(r) : '';
+    const fixBtn = (kind, i) => isAdmin() && !closed ? ' <button onclick="fixTime(\'' + kind + '\',' + i + ')">แก้เวลา</button>' : '';
+    $('#view').innerHTML = '<div class="card"><h2>ตรวจสอบและปิดรอบเดือน</h2>' + monthInput('cm', CM, 'viewClose(this.value)') + ' ' +
+      (closed ? '<span class="chip ok">ปิดรอบแล้ว · ' + esc(p.closedBy) + '</span>' : '<span class="chip working">เปิดอยู่</span>') +
+      '<p class="sm mut">เวลาเข้างานอาจเปลี่ยนโดยยังไม่ได้อัปเดตตาราง — ก่อนคิดเงินเดือนให้ตรวจรายการด้านล่างให้ครบ แล้วแอดมินกด "ปิดรอบ" เมื่อปิดรอบแล้วจะแก้ตาราง/ยื่นขอ/อนุมัติ/แก้เวลาย้อนหลังของเดือนนั้นไม่ได้ จนกว่าแอดมินจะเปิดรอบ (มีบันทึกประวัติ)</p>' +
+      '<ul style="list-style:none;padding:0">' + ok(p.ended, 'เดือนสิ้นสุดแล้ว') + ok(!b.review, 'รายการลงเวลานอกตารางรอตรวจ: ' + b.review) + ok(!b.missingOut, 'ลืมลงเวลาออก: ' + b.missingOut) + ok(!b.requests, 'คำขอ ลา/OT/แก้เวลา/สลับวันหยุด ที่ยังรออนุมัติ: ' + b.requests) + ok(!b.offWork, 'ทำงานวันหยุด (สัปดาห์ที่ไม่ได้หยุดและไม่ได้ชดเชย) รออนุมัติ: ' + b.offWork) + '</ul>' +
+      (p.note ? '<p class="sm mut">' + esc(p.note) + '</p>' : '') + '</div>' +
+      '<div class="card"><h2>ลงเวลานอกตาราง — รอตรวจ (' + p.review.length + ')</h2>' + (p.review.length ? '<div class="scroll"><table><tr><th>วันที่</th><th>พนักงาน</th><th>เข้า–ออก</th><th>ชม.</th><th>จัดการ</th></tr>' +
+        p.review.map((r, i) => '<tr><td>' + esc(dmy(r.date)) + '</td><td>' + esc(r.name) + '<div class="sm mut">' + esc(r.dept) + '</div></td><td>' + times(r) + '<div class="sm">' + photos(r) + '</div></td><td>' + (r.workMin / 60).toFixed(1) + '</td><td>' +
+          (closed ? '' : '<button class="pri" onclick="revU(' + i + ',\'ot\',this)">นับเป็น OT</button> <select id="rs' + i + '">' + BOOT.shifts.map(x => '<option value="' + esc(x.code) + '">' + esc(x.code) + ' ' + esc(x.start) + '–' + esc(x.end) + '</option>').join('') + '</select><button onclick="revU(' + i + ',\'shift\',this)">ตั้งเป็นกะ</button> <button class="bad" onclick="revU(' + i + ',\'reject\',this)">ไม่นับ</button>' + fixBtn('review', i)) + '</td></tr>').join('') + '</table></div>' +
+        '<p class="sm mut">นับเป็น OT = ใช้ชั่วโมงที่ทำจริง (นับตั้งแต่ 1 ชม. เศษไม่ถึง 40 นาทีปัดลง) · ตั้งเป็นกะ = เพิ่มกะนั้นลงตารางงานและคิดสาย/ออกก่อนตามปกติ · ไม่นับ = ไม่นำไปคิด</p>' : '<p class="mut">ไม่มีรายการค้าง</p>') + '</div>' +
+      '<div class="card"><h2>พนักงานรายเดือน: วันหยุดที่ขาด / ทำงานวันหยุด (' + p.offWork.length + ')</h2>' + (p.offWork.length ? '<div class="scroll"><table><tr><th>พนักงาน</th><th>หยุดต่อสัปดาห์ (สัปดาห์เต็ม)</th><th>ขาดหยุด</th><th>สถานะ</th><th></th></tr>' +
+        p.offWork.map((o, i) => '<tr><td>' + esc(o.name) + '<div class="sm mut">' + esc(o.dept) + '</div></td><td>' + esc((o.weeks || []).join(', ')) + '</td><td><b>' + esc(o.deficit) + '</b> วัน</td><td>' + (o.status === 'pending' ? '<span class="chip working">รออนุมัติ</span>' : o.status === 'approved' ? '<span class="chip ok">อนุมัติ (คิดค่าทำงานวันหยุด)</span>' : '<span class="chip rejected">ไม่นับ</span>') + '</td><td>' +
+          (closed ? '' : '<button class="pri" onclick="offDecide(' + i + ',true,this)">อนุมัติเป็นทำงานวันหยุด</button> <button class="bad" onclick="offDecide(' + i + ',false,this)">ไม่นับ</button>') + '</td></tr>').join('') + '</table></div>' +
+        '<p class="sm mut">กติกา: พนักงานรายเดือนหยุดสัปดาห์ละ 1 วัน (สัปดาห์ = จันทร์–อาทิตย์ เฉพาะสัปดาห์เต็มในเดือน) ถ้าสัปดาห์ไหนไม่ได้หยุดต้องหยุดชดเชย 2 วันในสัปดาห์ถัดไป ถ้าชดเชยไม่ครบภายในเดือน จำนวนวันที่ขาดจะนับเป็น "ทำงานวันหยุด" เมื่อผู้จัดการ/เจ้าของอนุมัติ — พนักงานขอสลับวันหยุดได้ที่ "ลา / OT / แก้เวลา"</p>' : '<p class="mut">ไม่มี</p>') + '</div>' +
+      '<div class="card"><h2>ลืมลงเวลาออก (' + p.missingOut.length + ')</h2>' + (p.missingOut.length ? '<div class="scroll"><table><tr><th>วันที่</th><th>พนักงาน</th><th>กะ</th><th>เข้า</th><th></th></tr>' +
+        p.missingOut.map((r, i) => '<tr><td>' + esc(dmy(r.date)) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.shiftName) + '</td><td>' + hm(r.inAt) + '</td><td>' + (isAdmin() ? fixBtn('miss', i) : '<span class="sm mut">แอดมินแก้ได้เท่านั้น</span>') + '</td></tr>').join('') + '</table></div>' : '<p class="mut">ไม่มี</p>') + '</div>' +
+      '<div class="card"><h2>ขาดงาน (' + p.absent.length + ') · สาย ' + p.late + ' ครั้ง · แก้เวลา ' + p.edited.length + ' รายการ</h2>' + (p.absent.length ? '<div class="scroll"><table><tr><th>วันที่</th><th>พนักงาน</th><th>กะ</th></tr>' +
+        p.absent.map(r => '<tr><td>' + esc(dmy(r.date)) + '</td><td>' + esc(r.name) + '</td><td>' + esc(r.shiftName) + ' ' + esc(r.start) + '–' + esc(r.end) + '</td></tr>').join('') + '</table></div><p class="sm mut">ขาดงาน = ไม่มีการลงเวลาและไม่มีใบลาที่อนุมัติ ถ้าพนักงานมาทำงานจริงให้ยื่น "ขอแก้เวลา" หรือแอดมินแก้เวลาก่อนปิดรอบ</p>' : '<p class="mut">ไม่มี</p>') + '</div>' +
+      (isAdmin() ? '<div class="card">' + (closed ? '<button class="bad" onclick="reopenP(this)">เปิดรอบเดือนนี้ใหม่ (ต้องระบุเหตุผล)</button>' :
+        (p.absent.length ? '<label style="display:flex;gap:8px;align-items:center;color:inherit"><input type="checkbox" id="ack"> ตรวจรายการขาดงาน ' + p.absent.length + ' รายการแล้ว</label>' : '') +
+        '<p><button class="pri" ' + (p.canClose ? '' : 'disabled') + ' onclick="closeP(this)">ปิดรอบเดือน ' + esc(CM) + '</button></p>' + (p.canClose ? '' : '<p class="sm cov-bad">ยังปิดรอบไม่ได้ — เคลียร์รายการ ✗ ด้านบนก่อน</p>')) + '</div>' : '');
+  });
+}
+function offDecide(i, ok, b) {
+  const o = CL.offWork[i], note = ok ? '' : (prompt('เหตุผลที่ไม่นับ (ถ้ามี)') || '');
+  run(async () => { await call('offWorkDecide', [CM, o.empId, ok, note]); toast('บันทึกแล้ว'); viewClose(CM); }, b);
+}
+function revU(i, act, b) {
+  const r = CL.review[i];
+  if (act === 'reject' && !confirm('ไม่นับรายการนี้ใช่หรือไม่?')) return;
+  run(async () => { await call('reviewUnsched', [r.key, act, act === 'shift' ? $('#rs' + i).value : '']); toast('บันทึกแล้ว'); viewClose(CM); }, b);
+}
+function fixTime(kind, i) {
+  const r = kind === 'review' ? CL.review[i] : CL.missingOut[i];
+  openModal('<h2>แก้เวลา: ' + esc(r.name) + ' ' + esc(dmy(r.date)) + '</h2><p class="sm mut">เข้า ' + hm(r.inAt) + ' · ออก ' + hm(r.outAt) + ' — เฉพาะแอดมิน ต้องมีเหตุผล และบันทึกประวัติ</p>' +
+    '<div class="row"><div><label>เวลาเข้าใหม่ (เว้นว่างถ้าไม่แก้)</label><input id="fi" type="time"></div><div><label>เวลาออกใหม่</label><input id="fo" type="time"></div></div>' +
+    '<label>เหตุผล</label><input id="fr" style="width:100%"><p><button class="pri" onclick="doFix(\'' + kind + '\',' + i + ',this)">บันทึก</button> <button onclick="closeModal()">ยกเลิก</button></p>');
+}
+function doFix(kind, i, b) {
+  const r = kind === 'review' ? CL.review[i] : CL.missingOut[i];
+  const a = r.unsched ? { key: r.key } : { empId: r.empId, date: r.date };
+  run(async () => { await call('adminEditTime', [Object.assign(a, { newIn: $('#fi').value, newOut: $('#fo').value, reason: $('#fr').value })]); closeModal(); toast('แก้เวลาแล้ว'); viewClose(CM); }, b);
+}
+function closeP(b) {
+  const ack = $('#ack') ? $('#ack').checked : true;
+  if (!confirm('ปิดรอบเดือน ' + CM + ' ?\nหลังปิดจะแก้ไขเดือนนี้ไม่ได้จนกว่าจะเปิดรอบใหม่')) return;
+  run(async () => { await call('periodClose', [CM, ack]); toast('ปิดรอบแล้ว'); viewClose(CM); }, b);
+}
+function reopenP(b) {
+  const why = prompt('เหตุผลที่เปิดรอบใหม่'); if (!why) return;
+  run(async () => { await call('periodReopen', [CM, why]); toast('เปิดรอบแล้ว'); viewClose(CM); }, b);
+}
+
+// ---------- เงินรางวัล ----------
+async function viewReward(month) {
+  const m = month || thisMonth();
+  await run(async () => {
+    const r = await call('reward', [m]);
+    $('#view').innerHTML = '<div class="card"><h2>เงินรางวัลผลงานร่วม</h2>' + monthInput('wm', m, 'viewReward(this.value)') + '<p class="sm mut">วงเงินต่อคน = ห้อง–คืน × อัตรา (ขั้นต่ำ/สูงสุดตั้งค่าได้) × คะแนน KPI ที่อนุมัติ ÷ 100 · ไม่ใช่หลักฐานการจ่ายเงิน</p>' +
+      (isAdmin() ? '<div class="row"><div><label>ยอดห้อง–คืนที่ขายและให้บริการจริง</label><input id="rn" type="number" value="' + esc(r.roomNights) + '"></div><div><button onclick="saveRN(\'' + m + '\',this)">บันทึกยอดห้อง</button></div></div>' : '<p>ห้อง–คืน: ' + esc(r.roomNights) + '</p>') +
+      '<p>วงเงินตั้งต้นต่อคน <b>' + esc(r.base) + '</b> บาท · รวมที่อนุมัติ <b>' + esc(r.total) + '</b> บาท</p><div class="scroll"><table><tr><th>พนักงาน</th><th>แผนก</th><th>KPI</th><th>เงินรางวัล</th></tr>' + r.list.map(x => '<tr><td>' + esc(x.name) + '</td><td>' + esc(x.dept) + '</td><td>' + (x.status === 'approved' ? esc(x.kpi) + '%' : '<span class="mut">รออนุมัติ</span>') + '</td><td>' + esc(x.amount) + '</td></tr>').join('') + '</table></div></div>';
+  });
+}
+function saveRN(m, b) { run(async () => { const o = {}; o['ROOMNIGHTS_' + m] = Number($('#rn').value) || 0; await call('saveConfig', [o]); toast('บันทึกแล้ว'); viewReward(m); }, b); }
+
+// ---------- ตั้งค่า (แอดมิน) ----------
+let AD = null;
+async function viewAdmin() {
+  $('#view').innerHTML = '<div class="card mut">กำลังโหลด…</div>';
+  await run(async () => {
+    AD = await call('adminData'); const c = AD.config;
+    const F = (k, l, t) => '<div><label>' + l + '</label><input data-k="' + k + '" class="cf" ' + (t ? 'type="' + t + '"' : '') + ' value="' + esc(c[k]) + '"></div>';
+    $('#view').innerHTML = '<div class="card"><h2>จุดลงเวลาและกติกา</h2><div class="row">' + F('LAT', 'ละติจูดหน้าเคาน์เตอร์') + F('LNG', 'ลองจิจูด') + '</div>' +
+      '<p><button onclick="useHere()">ใช้ตำแหน่งที่ฉันยืนอยู่ตอนนี้</button> <span class="sm mut">ให้เจ้าของไปยืนที่จุดลงเวลาจริงแล้วกด (ไม่ใช้หมุดกลางโรงแรม)</span></p><div class="row">' + F('RADIUS_M', 'รัศมี (เมตร) — กำหนดไว้ 20') + F('MAX_ACCURACY_M', 'GPS คลาดเคลื่อนสูงสุด (เมตร)') + F('GRACE_MIN', 'ผ่อนผันสาย (นาที)') + F('MAX_CONSEC_WORK', 'เตือนถ้าทำงานติดกันเกิน (วัน)') + F('COVER24_DEPTS', 'แผนกที่ต้องมีคนครบ 24 ชม. (คำในชื่อแผนก คั่นด้วย ,)') + F('OT_ROUND_UP_FROM', 'OT: เศษนาที ≥ ค่านี้ปัดขึ้น') + F('OT_RATE', 'อัตรา OT (เท่า)') + F('LEAVE_TYPES', 'ประเภทการลา (คั่นด้วย , — ต้องมี ลาใช้วันหยุด เพื่อใช้สิทธิ์สะสม)') + F('UNPAID_LEAVE_TYPE', 'ประเภทลาที่ไม่รับค่าจ้าง (เว้นว่างได้)') + F('LEAVE_QUOTAS', 'โควต้าวันลา/ปี เช่น ลาป่วย:30,ลาพักร้อน:6 (เจ้าของเห็นคนเดียว)') + F('DEVICE_LOCK', 'ล็อกเครื่องพนักงาน (Y/N)') + F('CHAT_CLOCK', 'ลงเวลาในแชต LINE ด้วยรูป+ตำแหน่ง (Y/N)') + F('ADMIN_CLOCK_PUSH', 'แจ้งแอดมินทาง LINE ทุกครั้งที่มีคนลงเวลา (Y/N · ระวังโควต้าข้อความ LINE)') + F('OUTING_DEDUCT', 'หักเวลาออกนอกพื้นที่ (ธุระส่วนตัว) จากชั่วโมงทำงาน (Y/N)') + F('LINE_CLOCK_REQUIRED', 'ลงเวลาต้องเข้าผ่าน LINE (N=ไม่บังคับ · IOS=เฉพาะ iPhone/iPad · Y=ทุกคน)') + F('IOS_DEVICE_LOCK', 'ล็อกเครื่องกับ iPhone/iPad ด้วย (Y/N · ปกติ N เพราะ iOS จำเครื่องไม่ได้)') + F('PHOTO_MANAGER_VIEW', 'ให้ผู้จัดการดูรูปลงเวลา (Y/N · ปกติ N)') + F('HOLIDAY_PAY_WITH_CREDIT', 'ผู้มีสิทธิ์สะสมได้ค่าแรงวันหยุดด้วย (Y/N · ปกติ N)') + F('HOLIDAY_RATE', 'ค่าทำงานวันหยุด (เท่าของค่าแรงรายวัน)') + F('REQUEST_BACKDATE_DAYS', 'ยื่นลา/OT ย้อนหลังได้ (วัน)') + F('LEAVE_TYPES', 'ประเภทการลา (คั่นด้วย ,)') + F('REWARD_RATE', 'เงินรางวัล บาทต่อห้อง–คืน') + F('REWARD_MIN', 'ขั้นต่ำต่อคน') + F('REWARD_MAX', 'สูงสุดต่อคน') + '</div>' +
+      '<h3>LINE</h3><div class="row">' + F('LIFF_ID', 'LIFF ID') + F('LINE_CHANNEL_ID', 'LINE Login Channel ID') + '</div><p class="sm"><b>Webhook URL</b> (ใส่ที่ LINE Developers > Messaging API > Webhook URL แล้วเปิด Use webhook · ห้ามเผยแพร่ลิงก์นี้):</p><input readonly style="width:100%" onclick="this.select()" value="' + esc(AD.webhookUrl) + '"><p class="sm mut">Channel access token (แจ้งเตือนผ่าน LINE) เก็บใน Script Properties ด้วยฟังก์ชัน setLineAccessToken — สถานะ: ' + (AD.lineTokenSet ? 'ตั้งแล้ว' : 'ยังไม่ตั้ง') + '</p><p><button class="pri" onclick="saveCfg(this)">บันทึกการตั้งค่า</button></p></div>' +
+      '<div class="card"><h2>พนักงาน (' + AD.employees.length + ')</h2><p><button class="pri" onclick="empForm()">เพิ่มพนักงาน</button> <button onclick="showQR()">QR Code ลงเวลา</button></p><div class="scroll"><table><tr><th>รหัส</th><th>ชื่อ</th><th>แผนก/ตำแหน่ง</th><th>สิทธิ์</th><th>เงินเดือน</th><th>โควต้าสาย</th><th>LINE</th><th></th></tr>' +
+      AD.employees.map(e => '<tr><td>' + esc(e.id) + '</td><td>' + esc(e.name) + (e.active ? '' : ' <span class="chip absent">' + (e.resignDate ? 'ลาออก ' + esc(dmy(e.resignDate)) : 'ปิดใช้งาน') + '</span>') + (e.devicePending ? ' <span class="chip review">รอเปลี่ยนเครื่อง</span>' : '') + '</td><td>' + esc(e.dept) + '<div class="sm mut">' + esc(e.position) + '</div></td><td>' + esc(e.role) + '</td><td>' + (e.payType === 'hourly' ? 'PT ' + esc(e.hourlyRate) + '/ชม.' : e.payType === 'daily' ? 'รายวัน ' + esc(e.dailyRate) + '/วัน' : esc(e.baseSalary)) + '</td><td>' + esc(e.lateQuotaMin) + '</td><td>' + (e.lineLinked ? '✓' : '') + '</td><td>' + (e.hasDevice ? '<button onclick="resetDev(\'' + esc(e.id) + '\')">รีเซ็ตเครื่อง</button> ' : '') + '<button onclick="empForm(\'' + esc(e.id) + '\')">แก้ไข</button> ' + (e.active ? '<button onclick="resetPin(\'' + esc(e.id) + '\')">รีเซ็ต PIN</button> <button onclick="resignEmp(\'' + esc(e.id) + '\')">ลาออก</button>' : '<button onclick="reinstateEmp(\'' + esc(e.id) + '\')">รับกลับเข้าทำงาน</button>') + '</td></tr>').join('') + '</table></div></div>' +
+      tableEd('Shifts', 'กะทำงาน (เวลา HH:mm · กะข้ามคืนใส่เวลาออกน้อยกว่าเวลาเข้า)', [['code', 'รหัส'], ['name', 'ชื่อ'], ['start', 'เริ่ม'], ['end', 'เลิก'], ['breakMin', 'พัก(นาที)'], ['active', 'ใช้งาน TRUE/FALSE']]) +
+      tableEd('Coverage', 'จำนวนคนขั้นต่ำต่อกะ (ใช้ตรวจว่าครบกะหรือยัง)', [['dept', 'แผนก'], ['shift', 'กะ'], ['minPeople', 'ขั้นต่ำ(คน)']]) +
+      tableEd('Holidays', 'วันหยุดนักขัตฤกษ์ (yyyy-MM-dd)', [['date', 'วันที่'], ['name', 'ชื่อวันหยุด']]) +
+      tableEd('KpiTemplates', 'แบบประเมิน KPI (แผนก * = แบบมาตรฐาน, น้ำหนักรวมต่อแผนก = 100)', [['dept', 'แผนก'], ['criterion', 'หัวข้อ'], ['weight', 'น้ำหนัก']]) +
+      '<div class="card"><h2>ประวัติการเปลี่ยนแปลง</h2><div class="scroll"><table><tr><th>เวลา</th><th>ผู้ทำ</th><th>คำสั่ง</th><th>รายละเอียด</th></tr>' + AD.audit.map(a => '<tr><td>' + esc(a.at) + '</td><td>' + esc(a.actor) + '</td><td>' + esc(a.action) + '</td><td class="sm">' + esc(a.detail) + '</td></tr>').join('') + '</table></div></div>';
+  });
+}
+function tableEd(name, title, cols) {
+  return '<div class="card"><h2>' + esc(title) + '</h2><div class="scroll"><table id="te_' + name + '"><tr>' + cols.map(c => '<th>' + c[1] + '</th>').join('') + '<th></th></tr>' + AD.tables[name].map(r => teRow(cols, r)).join('') + '</table></div><p><button onclick="teAdd(\'' + name + '\')">+ เพิ่มแถว</button> <button class="pri" onclick="teSave(\'' + name + '\',this)">บันทึก</button></p></div>';
+}
+function teRow(cols, r) { return '<tr data-cols="' + cols.map(c => c[0]).join(',') + '">' + cols.map(c => '<td><input data-k="' + c[0] + '" value="' + esc(r ? r[c[0]] : '') + '" style="width:100%;min-width:70px"></td>').join('') + '<td><button onclick="this.closest(\'tr\').remove()">ลบ</button></td></tr>'; }
+const TCOLS = { Shifts: ['code', 'name', 'start', 'end', 'breakMin', 'active'], Coverage: ['dept', 'shift', 'minPeople'], Holidays: ['date', 'name'], KpiTemplates: ['dept', 'criterion', 'weight'] };
+function teAdd(n) { const t = $('#te_' + n), tr = document.createElement('tbody'); tr.innerHTML = teRow(TCOLS[n].map(k => [k]), null); t.appendChild(tr.firstChild); }
+function teSave(n, b) {
+  run(async () => {
+    const rows = [...document.querySelectorAll('#te_' + n + ' tr[data-cols]')].map(tr => { const o = {}; tr.querySelectorAll('input').forEach(i => o[i.dataset.k] = i.value.trim()); return o; });
+    const r = await call('saveTable', [n, rows]); toast('บันทึก ' + r.rows + ' แถว');
+  }, b);
+}
+function useHere() { run(async () => { const p = await getPos(); document.querySelector('[data-k=LAT]').value = p.latitude.toFixed(7); document.querySelector('[data-k=LNG]').value = p.longitude.toFixed(7); toast('ได้พิกัด คลาดเคลื่อน ±' + Math.round(p.accuracy) + ' ม. อย่าลืมกดบันทึก'); }); }
+function saveCfg(b) { run(async () => { const o = {}; document.querySelectorAll('.cf').forEach(i => o[i.dataset.k] = i.value.trim()); await call('saveConfig', [o]); toast('บันทึกการตั้งค่าแล้ว'); }, b); }
+function empForm(id) {
+  const e = id ? AD.employees.find(x => x.id === id) : { role: 'staff', active: true };
+  openModal('<h2>' + (id ? 'แก้ไขพนักงาน' : 'เพิ่มพนักงาน') + '</h2><label>รหัสพนักงาน</label><input id="e_id" value="' + esc(e.id || '') + '" ' + (id ? 'disabled' : '') + '><label>ชื่อ</label><input id="e_name" value="' + esc(e.name || '') + '"><div class="row"><div><label>แผนก</label><input id="e_dept" value="' + esc(e.dept || '') + '"></div><div><label>ตำแหน่ง</label><input id="e_pos" value="' + esc(e.position || '') + '"></div></div><div class="row"><div><label>สิทธิ์</label><select id="e_role"><option value="staff">พนักงาน</option><option value="manager">ผู้จัดการ</option><option value="admin">แอดมิน/เจ้าของ</option></select></div><div><label>ประเภทพนักงาน</label><select id="e_pt"><option value="monthly">รายเดือน</option><option value="daily">รายวัน</option><option value="hourly">พาร์ทไทม์ PT (รายชั่วโมง)</option></select></div><div><label>เงินเดือน (รายเดือน)</label><input id="e_sal" type="number" value="' + esc(e.baseSalary || 0) + '"></div><div><label>ค่าจ้างรายวัน (รายวัน)</label><input id="e_dr" type="number" value="' + esc(e.dailyRate || 0) + '"></div><div><label>ค่าจ้างต่อชั่วโมง (PT)</label><input id="e_hrate" type="number" value="' + esc(e.hourlyRate || 0) + '"></div><div><label>โควต้าสาย (นาที/เดือน)</label><input id="e_lq" type="number" value="' + esc(e.lateQuotaMin || 0) + '"></div><div><label>สิทธิ์สะสมวันหยุดนักขัตฤกษ์</label><select id="e_hr"><option value="auto">ตามประเภท (รายเดือนได้ / รายวันไม่ได้)</option><option value="Y">ได้สิทธิ์</option><option value="N">ไม่ได้สิทธิ์</option></select></div></div><label>อีเมล (ถ้ามี)</label><input id="e_mail" value="' + esc(e.email || '') + '"><label><input type="checkbox" id="e_act" ' + (e.active ? 'checked' : '') + '> ใช้งาน</label> <label><input type="checkbox" id="e_dx" ' + (e.deviceExempt ? 'checked' : '') + '> ไม่ล็อกเครื่อง (มือถือที่จำเครื่องไม่ได้)</label> <label><input type="checkbox" id="e_lo" ' + (e.lineOnly ? 'checked' : '') + '> ลงเวลาต้องผ่าน LINE</label> <label><input type="checkbox" id="e_sc" ' + (e.strictClock ? 'checked' : '') + '> ห้ามลงเวลาในแชต (ต้องใช้แอป: ถ่ายสด+GPS)</label><p><button class="pri" onclick="saveEmp(this)">บันทึก</button> <button onclick="closeModal()">ยกเลิก</button></p>');
+  $('#e_role').value = e.role || 'staff'; $('#e_pt').value = e.payType || 'monthly'; $('#e_hr').value = e.holidayRight || 'auto';
+}
+function saveEmp(b) {
+  run(async () => {
+    const r = await call('saveEmployee', [{ id: $('#e_id').value, name: $('#e_name').value, dept: $('#e_dept').value, position: $('#e_pos').value, role: $('#e_role').value, baseSalary: $('#e_sal').value, payType: $('#e_pt').value, dailyRate: $('#e_dr').value, hourlyRate: $('#e_hrate').value, lateQuotaMin: $('#e_lq').value, holidayRight: $('#e_hr').value, deviceExempt: $('#e_dx').checked, lineOnly: $('#e_lo').checked, strictClock: $('#e_sc').checked, email: $('#e_mail').value, active: $('#e_act').checked }]);
+    if (r.newPin) openModal('<h2>สร้างพนักงานแล้ว</h2><p>รหัส <b>' + esc(r.id) + '</b> · PIN เริ่มต้น <b style="font-size:22px">' + esc(r.newPin) + '</b></p><p class="sm mut">แสดงครั้งเดียว กรุณาแจ้งพนักงานแล้วให้เปลี่ยน PIN เอง</p><button class="pri" onclick="closeModal();viewAdmin()">ตกลง</button>');
+    else { closeModal(); toast('บันทึกแล้ว'); viewAdmin(); }
+  }, b);
+}
+let BY_ = String(new Date().getFullYear());
+async function viewBalance(y) {
+  if (y) BY_ = String(y);
+  await run(async () => {
+    const r = await call('leaveBalance', [BY_]);
+    const qk = Object.keys(r.quotas);
+    $('#view').innerHTML = '<div class="card"><h2>วันลาคงเหลือ (เห็นเฉพาะเจ้าของ)</h2><div class="row"><div><label>ปี (ค.ศ.)</label><input type="number" value="' + esc(r.year) + '" onchange="viewBalance(this.value)"></div></div>' +
+      '<p class="sm mut">สิทธิ์สะสมวันหยุดนักขัตฤกษ์ = จำนวนวันนักขัตฤกษ์ที่พนักงานมาทำงานจริง (นับจากตารางวันหยุดที่ตั้งไว้) หักด้วยวันลาประเภท “ลาใช้วันหยุด” ที่อนุมัติแล้ว · พนักงานและผู้จัดการไม่เห็นหน้านี้</p>' +
+      '<div class="scroll"><table><tr><th>รหัส</th><th>ชื่อ</th><th>สิทธิ์สะสม</th><th>ได้</th><th>ใช้</th><th>คงเหลือ</th>' + r.types.filter(t => t !== 'ลาใช้วันหยุด').map(t => '<th>' + esc(t) + ' (ใช้' + (r.quotas[t] !== undefined ? '/เหลือ' : '') + ')</th>').join('') + '</tr>' +
+      r.rows.map(x => '<tr><td>' + esc(x.id) + '</td><td>' + esc(x.name) + '<div class="sm mut">' + esc(x.dept) + '</div></td><td>' + (x.eligible ? '✓' : '—') + '</td><td>' + (x.eligible ? x.earned : '') + '</td><td>' + (x.eligible ? x.holidayUsed : '') + '</td><td><b>' + (x.eligible ? x.holidayBalance : '') + '</b>' + (x.eligible && x.earnedDates.length ? '<div class="sm mut">' + x.earnedDates.map(dmy).join(', ') + '</div>' : '') + '</td>' +
+        r.types.filter(t => t !== 'ลาใช้วันหยุด').map(t => '<td>' + (x.used[t] || 0) + (r.quotas[t] !== undefined ? ' / ' + x.remain[t] : '') + '</td>').join('') + '</tr>').join('') + '</table></div></div>';
+  });
+}
+function resignEmp(id) {
+  const d = prompt('พนักงาน ' + id + ' ลาออก — ระบุวันทำงานวันสุดท้าย (yyyy-mm-dd)\nระบบจะปิดการเข้าระบบทันที (ลบ PIN / ผูก LINE / เครื่อง) แต่เก็บประวัติลงเวลา ใบลา KPI ไว้ครบ ตารางงานหลังวันนั้นจะถูกลบ', todayStr());
+  if (!d) return;
+  run(async () => { await call('resignEmployee', [id, d]); toast('บันทึกการลาออกแล้ว'); viewAdmin(); });
+}
+function reinstateEmp(id) { if (!confirm('รับ ' + id + ' กลับเข้าทำงาน? ระบบจะสร้าง PIN ใหม่ให้')) return; run(async () => { const r = await call('reinstateEmployee', [id]); openModal('<h2>รับกลับเข้าทำงานแล้ว</h2><p>PIN ใหม่: <b style="font-size:24px">' + esc(r.newPin) + '</b></p><p><button onclick="closeModal();viewAdmin()">ปิด</button></p>'); }); }
+function showQR() {
+  const url = (ST_ && ST_.liffUrl) || location.href.split('?')[0];
+  if (!url) { toast('ยังไม่พบลิงก์เว็บแอป (ต้อง Deploy เป็น Web app ก่อน)'); return; }
+  const q = qrcode(0, 'M'); q.addData(url); q.make();
+  const svg = q.createSvgTag({ cellSize: 8, margin: 4, scalable: true });
+  openModal('<h2>QR Code ลงเวลาเข้า–ออกงาน</h2><div id="qrbox" style="max-width:320px;margin:auto">' + svg + '</div><p class="sm mut" style="word-break:break-all">' + esc(url) + '</p>' +
+    '<p class="sm">สแกนด้วยกล้องมือถือ → เปิดเว็บแอป → เข้าสู่ระบบ → กดลงเวลา (ระบบยังตรวจ GPS ไม่เกิน ' + esc((BOOT && BOOT.radius) || 20) + ' ม. และถ่ายรูปสดทุกครั้ง) · พิมพ์ติดหน้าจุดลงเวลา</p>' +
+    '<p><button class="pri" onclick="printQR()">พิมพ์โปสเตอร์</button> <button onclick="closeModal()">ปิด</button></p>');
+}
+function printQR() {
+  const w = window.open('', '_blank'); if (!w) { toast('เบราว์เซอร์บล็อกหน้าต่างพิมพ์'); return; }
+  w.document.write('<!doctype html><meta charset="utf-8"><title>QR ลงเวลา</title><style>body{font-family:sans-serif;text-align:center;padding:30px}h1{font-size:44px;margin:10px}.q{width:420px;margin:20px auto}p{font-size:22px}</style><h1>สแกนเพื่อลงเวลา</h1><p>เข้างาน – เลิกงาน · Sea Paradise Team</p><div class="q">' + $('#qrbox').innerHTML + '</div><p>1) สแกน QR  2) ใส่รหัสพนักงาน + PIN  3) กด "ลงเวลา" และถ่ายรูป</p><p style="font-size:16px">ต้องอยู่ในจุดลงเวลา · ห้ามลงเวลาแทนกัน</p><script>setTimeout(function(){print()},400)<\/script>');
+  w.document.close();
+}
+function resetDev(id) { if (!confirm('รีเซ็ตเครื่องของ ' + id + ' ? พนักงานจะล็อกอินจากมือถือเครื่องใหม่ได้ 1 เครื่อง (เครื่องแรกที่ใส่ PIN)')) return; run(async () => { await call('resetDevice', [id]); toast('รีเซ็ตเครื่องแล้ว'); viewAdmin(); }); }
+function resetPin(id) { if (!confirm('รีเซ็ต PIN ของ ' + id + ' ? (จะยกเลิกการผูก LINE ด้วย)')) return; run(async () => { const r = await call('resetPin', [id]); openModal('<h2>PIN ใหม่ของ ' + esc(id) + '</h2><p class="big">' + esc(r.pin) + '</p><p class="sm mut">แสดงครั้งเดียว</p><button class="pri" onclick="closeModal()">ตกลง</button>'); }); }
+
+// ---------- เริ่มต้น / LINE ----------
+async function boot() {
+  // กันหน้าค้างว่าง: ขั้นตอน LINE ต้องจบภายใน 8 วินาที ไม่งั้นข้ามไปล็อกอินด้วย PIN
+  const lim = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
+  let liffNote = '';
+  // LIFF ทำงานในหน้า relay (ภายนอก Apps Script) แล้วส่ง ID token มาทาง ?idt=
+  IDTOKEN = PRE_IDT || '';
+  if (PRE_IDT) { try { history.replaceState(null, '', location.pathname); } catch (e) {} }   // ซ่อนโทเค็นออกจากแถบที่อยู่
+  if (IDTOKEN) { try { const r = await call('lineLogin', [IDTOKEN], true); TOKEN = r.token; save('tk', TOKEN); await start(); return; } catch (e) { /* ยังไม่ผูก LINE → ล็อกอินด้วยรหัส */ } }
+  TOKEN = load('tk');
+  if (TOKEN) { try { await start(); return; } catch (e) { TOKEN = ''; } }
+  showLogin();
+  if (liffNote) { try { $('#lerr').textContent = liffNote; } catch (e) { toast(liffNote, true); } }
+}
+boot();
+</script>
+</body>
+</html>

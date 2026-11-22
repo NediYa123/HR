@@ -1,0 +1,11 @@
+<!doctype html><html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>ทดสอบ GPS/กล้อง</title>
+<style>body{font-family:sans-serif;padding:16px;max-width:480px;margin:auto}button{padding:14px;font-size:16px;margin:6px 0;width:100%}pre{background:#eee;padding:8px;white-space:pre-wrap}</style></head>
+<body><h2>ทดสอบ GPS และกล้อง</h2>
+<button onclick="g()">1) ทดสอบ GPS</button><button onclick="c()">2) ทดสอบกล้อง</button><video id="v" autoplay playsinline muted style="width:100%;display:none"></video><pre id="o">กดปุ่มด้านบน</pre>
+<script>
+var o=document.getElementById('o');function log(t){o.textContent=t}
+function g(){log('กำลังอ่าน GPS…');
+ if(navigator.permissions)navigator.permissions.query({name:'geolocation'}).then(function(r){o.textContent+='\nสถานะสิทธิ์: '+r.state});
+ navigator.geolocation.getCurrentPosition(function(p){log('GPS ได้แล้ว\nlat '+p.coords.latitude+'\nlng '+p.coords.longitude+'\nคลาดเคลื่อน ±'+Math.round(p.coords.accuracy)+' ม.')},function(e){o.textContent+='\nGPS ไม่ได้: code '+e.code+' '+e.message},{enableHighAccuracy:true,timeout:20000,maximumAge:0})}
+function c(){log('กำลังเปิดกล้อง…');navigator.mediaDevices.getUserMedia({video:{facingMode:'user'}}).then(function(s){var v=document.getElementById('v');v.srcObject=s;v.style.display='block';log('กล้องใช้ได้')}).catch(function(e){log('กล้องไม่ได้: '+e.name+' '+e.message)})}
+</script></body></html>

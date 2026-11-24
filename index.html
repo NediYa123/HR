@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="th"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preconnect" href="https://script.google.com"><link rel="prefetch" href="app.html"><script src="config.js"></script>
 <title>Sea Paradise Team</title>
 <style>body{font-family:sans-serif;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;color:#1f4d45}</style></head>
 <body><div id="m" style="text-align:center;padding:0 24px">กำลังเข้าสู่ระบบผ่าน LINE…</div>
@@ -10,6 +11,8 @@ var LIFF_ID = '2012605168-K5RRWnPY';
 var APP_URL = 'https://nediya123.github.io/HR/app.html';
 var EXTERNAL = false;   // true = เปิดในเบราว์เซอร์ของมือถือ (กล้อง/GPS ใช้ได้) · false = เปิดในแอป LINE
 // =======================
+// ปลุกเซิร์ฟเวอร์ Apps Script ระหว่างรอ LINE ยืนยันตัวตน (ลดเวลาโหลดหน้าถัดไป)
+try{if(window.APP_CFG&&APP_CFG.API_URL)fetch(APP_CFG.API_URL,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:'{"rpc":"ping"}'}).catch(function(){});}catch(e){}
 function fail(t){document.getElementById('m').innerHTML='เปิดผ่าน LINE ไม่สำเร็จ: '+t+'<br><br><a href="'+APP_URL+'">เข้าสู่ระบบด้วยรหัสพนักงาน</a>';}
 liff.init({liffId:LIFF_ID}).then(function(){
   if(!liff.isLoggedIn()){liff.login({redirectUri:location.href});return;}

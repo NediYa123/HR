@@ -859,6 +859,10 @@ function resetPin(id) { if (!confirm('รีเซ็ต PIN ของ ' + id + 
 
 // ---------- เริ่มต้น / LINE ----------
 async function boot() {
+  if (!/^https:\/\/script\.google\.com\/macros\/s\/[^\s]+\/exec$/.test(API_URL)) {
+    document.body.innerHTML = '<div style="font-family:sans-serif;padding:24px;max-width:520px;margin:auto"><h2>ยังตั้งค่าไม่ครบ</h2><p>ไฟล์ <b>config.js</b> ในโฟลเดอร์เดียวกับหน้านี้บน GitHub ยังไม่ได้ใส่ลิงก์ <b>/exec</b> ของ Apps Script (หรือไม่มีไฟล์นี้)</p><p>ให้แอดมินแก้ไฟล์ config.js ให้เป็น<br><code>window.APP_CFG = { API_URL: \'https://script.google.com/macros/s/…/exec\' };</code></p></div>';
+    return;
+  }
   // กันหน้าค้างว่าง: ขั้นตอน LINE ต้องจบภายใน 8 วินาที ไม่งั้นข้ามไปล็อกอินด้วย PIN
   const lim = (p, ms) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(new Error('timeout')), ms))]);
   let liffNote = '';

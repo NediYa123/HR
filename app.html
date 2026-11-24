@@ -429,6 +429,40 @@ async function viewSchedule(month) {
     renderGrid();
   });
 }
+
+// ---------- ตารางงานเป็น PDF หน้าเดียว (เฉพาะรหัสกะ เรียงตามรหัสพนักงาน) + แจ้งพนักงาน ----------
+const natCmp = (a, b) => String(a).localeCompare(String(b), 'en', { numeric: true, sensitivity: 'base' });
+function printSchedule() {
+  if (!SC) return;
+  const emps = SC.emps.filter(e => !DEPT || e.dept === DEPT).slice().sort((x, y) => natCmp(x.id, y.id));
+  if (!emps.length) { toast('ไม่มีพนักงานในตาราง', true); return; }
+  const n = emps.length, rowH = 0, fs = 8, dayW = Math.min(6.8, 200 / SC.dates.length);
+  const col = { M: '#d6ecff', A: '#ffe9c7', N: '#dcd3f5', D: '#d9f2dc', OFF: '#f3d6d6' };
+  const p = SC.month.split('-'), mn = ['', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'][Number(p[1])];
+  const head = '<tr><th style="width:15mm">รหัส</th><th style="width:34mm">ชื่อ</th>' + SC.dates.map(d => { const w = dowOf(d), hol = SC.hol[d]; return '<th style="width:' + dayW + 'mm;' + (hol ? 'background:#f6c9c9' : w === 0 ? 'background:#fde0e0' : '') + '">' + +d.slice(8) + '<br><span style="font-weight:400">' + THDOW[w] + '</span></th>'; }).join('') + '</tr>';
+  const body = emps.map(e => '<tr><td>' + esc(e.id) + '</td><td style="text-align:left;white-space:nowrap;overflow:hidden">' + esc(e.name) + '</td>' + SC.dates.map(d => { const v = SC.cells[e.id + '|' + d] || ''; return '<td style="' + (v && col[v] ? 'background:' + col[v] : v ? 'background:#e6e6e6' : '') + (v === 'OFF' ? ';font-weight:700' : '') + '">' + esc(v) + '</td>'; }).join('') + '</tr>').join('');
+  const legend = (SC.shifts || []).map(s => '<b>' + esc(s.code) + '</b> ' + esc(s.start) + '–' + esc(s.end)).join(' · ') + ' · <b>OFF</b> วันหยุด';
+  const old = document.getElementById('printArea'); if (old) old.remove();
+  const css = document.createElement('style'); css.id = 'printCss';
+  css.textContent = '@page{size:A4 landscape;margin:8mm}#printArea{display:none}@media print{body>*:not(#printArea){display:none!important}#printArea{display:block!important;color:#000;font-family:sans-serif}#printArea *{-webkit-print-color-adjust:exact;print-color-adjust:exact}}' +
+    '#printArea table{border-collapse:collapse;table-layout:fixed;width:100%;font-size:' + fs + 'px}#printArea th,#printArea td{border:.2mm solid #888;text-align:center;padding:' + (n > 50 ? 0 : 1) + 'px 0;line-height:' + (n > 50 ? 1 : 1.15) + ';overflow:hidden}#printArea h1{font-size:15px;margin:0 0 2px}#printArea p{font-size:9px;margin:0 0 4px}';
+  const el = document.createElement('div'); el.id = 'printArea';
+  el.innerHTML = '<h1>ตารางงาน ' + mn + ' ' + (Number(p[0]) + 543) + (DEPT ? ' · แผนก ' + esc(DEPT) : '') + ' · Sea Paradise Team</h1><p>รหัสกะ: ' + legend + ' · ' + n + ' คน · เรียงตามรหัสพนักงาน</p><table>' + head + body + '</table>';
+  document.head.appendChild(css); document.body.appendChild(el);
+  // วัดความสูงจริงแล้วย่อ/ขยายให้พอดี 1 หน้า A4 แนวนอน (พื้นที่พิมพ์ 281×194 มม.)
+  el.style.cssText = 'display:block;position:absolute;left:-10000px;top:0;width:281mm';
+  const hpx = el.offsetHeight, zs = Math.max(0.3, Math.min(1.6, (194 * 3.7795 * 0.96) / Math.max(1, hpx)));
+  el.style.cssText = '';
+  css.textContent += '@media print{#printArea{zoom:' + zs.toFixed(3) + '}}';
+  const done = () => { el.remove(); css.remove(); window.removeEventListener('afterprint', done); };
+  window.addEventListener('afterprint', done);
+  toast('เลือก "บันทึกเป็น PDF" (Save as PDF) ในหน้าต่างพิมพ์ — ตั้งแนวนอน A4');
+  setTimeout(() => window.print(), 300);
+}
+function notifySched(b) {
+  if (!confirm('ส่งข้อความ LINE แจ้งพนักงาน' + (DEPT ? 'แผนก ' + DEPT : 'ทุกคน') + ' ว่าตารางงานเดือน ' + SC.month + ' ออกแล้ว? (ข้อความนับเป็นโควต้า push ของ LINE)')) return;
+  run(async () => { const r = await call('notifySchedule', [SC.month, DEPT || '']); toast('ส่งแล้ว ' + r.sent + ' คน' + (r.noLine ? ' · ยังไม่ผูก LINE ' + r.noLine + ' คน' : '')); }, b);
+}
 async function reloadSched() { SC = await call('schedule', [SC.month]); CH = {}; renderGrid(); }
 const shT = c => esc(c || '');   // ตารางแสดงเป็นรหัสกะ (M/A/N/D/OFF)
 const shLegend = () => '<p class="sm"><b>รหัสกะ:</b> ' + (SC.shifts || []).map(s => '<b>' + esc(s.code) + '</b> = ' + esc(s.name) + ' ' + esc(s.start) + '–' + esc(s.end)).join(' · ') + ' · <b>OFF</b> = วันหยุด</p>';
@@ -448,7 +482,7 @@ function renderGrid_() {
     SC.dates.map(d => { const c = SC.coverage[d]; return '<td onclick="covDetail(\'' + d + '\')" style="cursor:pointer">' + (c && c.short.length ? '<span class="cov-bad">⚠' + c.short.length + '</span>' : '<span class="cov-ok">✓</span>') + '</td>'; }).join('') + '</tr>';
   $('#view').innerHTML = '<div class="card"><h2>ตารางงานรายเดือน</h2><div class="row">' + '<div>' + monthInput('mm', SC.month, 'viewSchedule(this.value)') + '</div>' +
     '<div><select id="dp" onchange="DEPT=this.value;renderGrid()"><option value="">ทุกแผนก</option>' + depts.map(d => '<option ' + (d === DEPT ? 'selected' : '') + '>' + esc(d) + '</option>').join('') + '</select></div>' +
-    '<div><button onclick="copyForm()">คัดลอกจากเดือนก่อน</button></div></div>' +
+    '<div><button onclick="copyForm()">คัดลอกจากเดือนก่อน</button></div>' + (isAdmin() ? '<div><button onclick="printSchedule()">บันทึกเป็น PDF (หน้าเดียว)</button></div><div><button onclick="notifySched(this)">แจ้งพนักงานทาง LINE</button></div>' : '') + '</div>' +
     '<h3>เลือกกะแล้วแตะช่องเพื่อจัด · แตะวันที่ = ทั้งแผนกในวันนั้น · แตะชื่อ = ทั้งเดือนของคนนั้น</h3><div class="brush row" style="gap:6px">' +
     SC.shifts.map(s => '<button data-b="' + esc(s.code) + '" class="' + (BR === s.code ? 'on ' : '') + 'sh-' + (/^[MAND]$/.test(s.code) ? s.code : 'x') + '" style="flex:0 0 auto" onclick="setBrush(\'' + esc(s.code) + '\')">' + esc(s.start) + '–' + esc(s.end) + '</button>').join('') +
 '<button data-b="OFF" class="sh-OFF ' + (BR === 'OFF' ? 'on' : '') + '" style="flex:0 0 auto" onclick="setBrush(\'OFF\')">หยุด (วันหยุดพนักงาน)</button>' +

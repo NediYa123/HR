@@ -471,7 +471,7 @@ function notifySched(b) {
 }
 async function reloadSched() { SC = await call('schedule', [SC.month]); CH = {}; renderGrid(); }
 const shT = c => esc(c || '');   // ตารางแสดงเป็นรหัสกะ (M/A/N/D/OFF)
-const shLegend = () => '<p class="sm"><b>รหัสกะ:</b> ' + (SC.shifts || []).map(s => '<b>' + esc(s.code) + '</b> = ' + esc(s.name) + ' ' + esc(s.start) + '–' + esc(s.end)).join(' · ') + ' · <b>OFF</b> = วันหยุด</p>';
+const shLegend = (withTime) => '<p class="sm"><b>รหัสกะ:</b> ' + (SC.shifts || []).map(s => '<b>' + esc(s.code) + '</b> = ' + esc(s.name) + (withTime === false ? '' : ' ' + esc(s.start) + '–' + esc(s.end))).join(' · ') + ' · <b>OFF</b> = วันหยุด</p>';
 function cellVal(id, d) { const k = id + '|' + d; return k in CH ? CH[k] : (SC.cells[k] || ''); }
 function renderGrid() {
   const sc = document.querySelector('.gridbox'), y = window.scrollY, sl = sc ? sc.scrollLeft : 0, st = sc ? sc.scrollTop : 0;
@@ -564,8 +564,8 @@ function renderMySchedule() {
   const rows = list.map(e => '<tr><td class="name"' + (e.id === ME.id ? ' style="font-weight:700"' : '') + '>' + esc(e.name) + (e.id === ME.id ? ' (ฉัน)' : '') + '</td>' +
     SC.dates.map(d => { const v = SC.cells[e.id + '|' + d] || ''; return '<td class="c ' + (SC.hol[d] ? 'hol ' : '') + (v ? 'sh-' + (v === 'OFF' ? 'OFF' : /^[MAND]$/.test(v) ? v : 'x') : '') + '" style="cursor:default">' + shT(v) + '</td>'; }).join('') + '</tr>').join('');
   $('#view').innerHTML = '<div class="card"><h2>ตารางงานของฉัน</h2>' + monthInput('mm', SC.month, 'viewSchedule(this.value)') + '<p>รวม ' + mine.length + ' กะ · ' + (meRow ? meRow.hours : 0) + ' ชม./เดือน</p>' +
-    '<div class="scroll"><table><tr><th>วันที่</th><th>วัน</th><th>เวลา</th></tr>' + SC.dates.map(d => { const c = SC.cells[ME.id + '|' + d], s = sh[c]; return '<tr><td>' + esc(dmy(d)) + (SC.hol[d] ? ' <span class="chip">' + esc(SC.hol[d]) + '</span>' : '') + '</td><td>' + THDOW[dowOf(d)] + '</td><td>' + (c === 'OFF' ? '<b class="cov-bad">OFF วันหยุด</b>' : s ? '<b>' + esc(s.code) + '</b> ' + esc(s.start) + '–' + esc(s.end) : '<span class="mut">-</span>') + '</td></tr>'; }).join('') + '</table></div></div>' +
-    '<div class="card"><h2>ตารางงานแผนก' + (ME.dept ? ' ' + esc(ME.dept) : '') + '</h2><p class="sm mut">เห็นเฉพาะรหัสกะของเพื่อนร่วมแผนก</p>' + shLegend() + '<div class="scroll gridbox"><table class="grid"><tr><th class="name">พนักงาน</th>' + hdr + '</tr>' + rows + '</table></div></div>';
+    '<div class="scroll"><table><tr><th>วันที่</th><th>วัน</th><th>รหัสกะ</th></tr>' + SC.dates.map(d => { const c = SC.cells[ME.id + '|' + d], s = sh[c]; return '<tr><td>' + esc(dmy(d)) + (SC.hol[d] ? ' <span class="chip">' + esc(SC.hol[d]) + '</span>' : '') + '</td><td>' + THDOW[dowOf(d)] + '</td><td>' + (c === 'OFF' ? '<b class="cov-bad">OFF</b>' : s ? '<b>' + esc(s.code) + '</b>' : '<span class="mut">-</span>') + '</td></tr>'; }).join('') + '</table></div></div>' +
+    '<div class="card"><h2>ตารางงานแผนก' + (ME.dept ? ' ' + esc(ME.dept) : '') + '</h2><p class="sm mut">เห็นเฉพาะรหัสกะของเพื่อนร่วมแผนก</p>' + shLegend(false) + '<div class="scroll gridbox"><table class="grid"><tr><th class="name">พนักงาน</th>' + hdr + '</tr>' + rows + '</table></div></div>';
 }
 
 // ---------- คำขอ ----------

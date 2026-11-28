@@ -38,7 +38,7 @@ th{font-size:12px;color:var(--mut);font-weight:600;white-space:nowrap}
 .grid td.name,.grid th.name{position:sticky;left:0;background:var(--card);min-width:130px;text-align:left;padding:4px 8px;z-index:2;cursor:pointer}
 .grid td.c{height:34px;font-size:10px;line-height:1.15;min-width:40px;cursor:pointer;user-select:none}.grid td.c.chg{outline:2px solid var(--info);outline-offset:-2px}
 .grid th.hol{background:#fde3e1;color:var(--bad)}.grid th.sun{color:var(--bad)}.grid th{cursor:pointer;position:sticky;top:0;background:var(--card);z-index:1}
-.grid td.hol{background:rgba(179,38,30,.06)}
+.grid td.hol{background:rgba(179,38,30,.06)}.grid .wkend{border-right:2px solid #555}.grid td.pad,.grid th.pad{background:#f2f2f2;min-width:30px;cursor:default}.grid th.wkh{position:static;cursor:default;font-size:11px;background:#eef3f6;border-bottom:1px solid #999}
 .sh-M{background:#dff1e6}.sh-A{background:#fff1d6}.sh-N{background:#dfe3f7}.sh-D{background:#ece5f5}.sh-x{background:#eee}.sh-OFF{background:#fde3e1;color:var(--bad)}
 @media (prefers-color-scheme:dark){.sh-OFF{background:#4a2421}.sh-M{background:#1f3a2b}.sh-A{background:#3d3220}.sh-N{background:#252b45}.sh-D{background:#2f2840}.sh-x{background:#2a2f2d}}
 .brush button.on{outline:3px solid var(--pri)}
@@ -116,7 +116,7 @@ const MY_EXACT = {
   'ออก': 'ထွက်ရန်', 'ยกเลิก': 'ပယ်ဖျက်', 'ปิด': 'ပိတ်ရန်', 'บันทึก': 'သိမ်းရန်', 'วันที่': 'ရက်စွဲ', 'วัน': 'နေ့', 'กะ': 'ဆိုင်း', 'เวลา': 'အချိန်',
   'เข้า / ออก': 'ဝင် / ထွက်', 'สาย / กลับก่อน': 'နောက်ကျ / စောပြန်', 'ชม.ทำงาน': 'အလုပ်ချိန် (နာရီ)', 'OT': 'OT', 'สถานะ': 'အခြေအနေ', 'ประเภท': 'အမျိုးအစား',
   'พนักงาน': 'ဝန်ထမ်း', 'รายละเอียด': 'အသေးစိတ်', 'สาย': 'နောက်ကျ', 'ลา': 'ခွင့်', 'ครบเวลา': 'အချိန်ပြည့်', 'กลับก่อน': 'စောပြန်', 'ขาดงาน': 'ပျက်ကွက်',
-  'ไม่นับ': 'မရေတွက်', 'คะแนน': 'ရမှတ်', 'ตกลง': 'အိုကေ',
+  'ไม่นับ': 'မရေတွက်', 'คะแนน': 'ရမှတ်', 'เข้างานสำเร็จ': 'အလုပ်ဝင်ခြင်း အောင်မြင်ပါသည်', 'เลิกงานสำเร็จ': 'အလုပ်ဆင်းခြင်း အောင်မြင်ပါသည်', 'ตกลง': 'အိုကေ',
   'อา': 'နွေ', 'จ': 'လာ', 'อ': 'ဂါ', 'พ': 'ဟူး', 'พฤ': 'တေး', 'ศ': 'သော', 'ส': 'နေ',
   'เช้า': 'မနက်ဆိုင်း', 'บ่าย': 'နေ့လည်ဆိုင်း', 'ดึก': 'ညဆိုင်း', 'สำนักงาน': 'ရုံးဆိုင်း', 'วันหยุด': 'ပိတ်ရက်'
 };
@@ -366,6 +366,12 @@ function takePhoto(posP) {
     }).catch(() => noCam());
   });
 }
+function clockPopup(r) {
+  const inn = r.mode === 'in';
+  openModal('<div style="text-align:center;padding:8px 4px"><div style="font-size:60px;line-height:1.1">' + (inn ? '✅' : '👋') + '</div><h2 style="margin:8px 0">' + (inn ? 'เข้างานสำเร็จ' : 'เลิกงานสำเร็จ') + '</h2><p class="big">' + esc(hm(r.at)) + ' น.</p>' +
+    (inn && r.lateMin ? '<p class="cov-bad"><b>สาย ' + r.lateMin + ' นาที</b></p>' : '') + (r.unscheduled ? '<p class="sm mut">นอกตาราง — รอผู้จัดการตรวจสอบ</p>' : '') +
+    '<p><button class="pri" style="width:100%;padding:12px" onclick="closeModal()">ตกลง</button></p></div>');
+}
 async function doClock() {
   await run(async () => {
     try {
@@ -376,7 +382,7 @@ async function doClock() {
       setSt('ตำแหน่งคลาดเคลื่อน ±' + Math.round(p.accuracy) + ' ม. กำลังบันทึก…');
       const r = await call('clock', [{ lat: p.latitude, lng: p.longitude, acc: p.accuracy, photo: PHOTO }]);
       setSt('สำเร็จ');
-      toast((r.mode === 'in' ? 'ลงเวลาเข้างาน ' : 'ลงเวลาออกงาน ') + hm(r.at) + (r.lateMin ? ' (สาย ' + r.lateMin + ' นาที)' : '') + (r.unscheduled ? ' — นอกตาราง รอผู้จัดการตรวจสอบ' : ''));
+      clockPopup(r);
       viewHome();
     } catch (e) { setSt('ลงเวลาไม่สำเร็จ: ' + e.message, true); throw e; }   // แสดงข้อความถาวรใต้ปุ่ม (toast ด้านล่างอาจถูก LINE บัง)
   }, $('#cbtn'));
@@ -445,8 +451,10 @@ function printSchedule() {
   const n = emps.length, rowH = 0, fs = 11, dayW = Math.min(6.8, 200 / SC.dates.length);
   const col = { M: '#d6ecff', A: '#ffe9c7', N: '#dcd3f5', D: '#d9f2dc', OFF: '#f3d6d6' };
   const p = SC.month.split('-'), mn = ['', 'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน', 'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'][Number(p[1])];
-  const head = '<tr><th style="width:27mm">ชื่อ</th>' + SC.dates.map(d => { const w = dowOf(d), hol = SC.hol[d]; return '<th style="' + (hol ? 'background:#f6c9c9' : w === 0 ? 'background:#fde0e0' : '') + '">' + +d.slice(8) + '<br><span style="font-weight:400">' + THDOW[w] + '</span></th>'; }).join('') + '</tr>';
-  const body = emps.map(e => '<tr><td style="text-align:left;white-space:nowrap;overflow:hidden;padding-left:1mm">' + esc(e.name) + '</td>' + SC.dates.map(d => { const v = SC.cells[e.id + '|' + d] || ''; return '<td style="' + (v && col[v] ? 'background:' + col[v] : v ? 'background:#e6e6e6' : '') + (v === 'OFF' ? ';font-weight:700;font-size:78%;letter-spacing:-.2px' : '') + '">' + esc(v) + '</td>'; }).join('') + '</tr>').join('');
+  const bs = i => i === 6 ? ';border-right:.5mm solid #000' : '', L7 = weekLayout();
+  let wkRow = '<tr><th style="width:27mm"></th>'; for (let w = 0; w < L7.total / 7; w++) wkRow += '<th colspan="7" style="border-right:.5mm solid #000;font-weight:400">สัปดาห์ที่ ' + (w + 1) + '</th>'; wkRow += '</tr>';
+  const head = wkRow + '<tr><th>ชื่อ</th>' + gridCols((d, i) => { const w = dowOf(d), hol = SC.hol[d]; return '<th style="' + (hol ? 'background:#f6c9c9' : w === 0 ? 'background:#fde0e0' : '') + bs(i) + '">' + +d.slice(8) + '<br><span style="font-weight:400">' + THDOW[w] + '</span></th>'; }, i => '<th style="background:#f2f2f2' + bs(i) + '"></th>') + '</tr>';
+  const body = emps.map(e => '<tr><td style="text-align:left;white-space:nowrap;overflow:hidden;padding-left:1mm">' + esc(e.name) + '</td>' + gridCols((d, i) => { const v = SC.cells[e.id + '|' + d] || ''; return '<td style="' + (v && col[v] ? 'background:' + col[v] : v ? 'background:#e6e6e6' : '') + (v === 'OFF' ? ';font-weight:700;font-size:78%;letter-spacing:-.2px' : '') + bs(i) + '">' + esc(v) + '</td>'; }, i => '<td style="background:#f2f2f2' + bs(i) + '"></td>') + '</tr>').join('');
   const legend = (SC.shifts || []).map(s => '<b>' + esc(s.code) + '</b> ' + esc(s.start) + '–' + esc(s.end)).join(' · ') + ' · <b>OFF</b> วันหยุด';
   const old = document.getElementById('printArea'); if (old) old.remove();
   const css = document.createElement('style'); css.id = 'printCss';
@@ -472,6 +480,25 @@ function notifySched(b) {
 async function reloadSched() { SC = await call('schedule', [SC.month]); CH = {}; renderGrid(); }
 const shT = c => esc(c || '');   // ตารางแสดงเป็นรหัสกะ (M/A/N/D/OFF)
 const shLegend = (withTime) => '<p class="sm"><b>รหัสกะ:</b> ' + (SC.shifts || []).map(s => '<b>' + esc(s.code) + '</b> = ' + esc(s.name) + (withTime === false ? '' : ' ' + esc(s.start) + '–' + esc(s.end))).join(' · ') + ' · <b>OFF</b> = วันหยุด</p>';
+// ---------- ตารางแบบสัปดาห์ จันทร์–อาทิตย์ (เติมช่องว่างต้น/ท้ายเดือนให้ครบ 7 วัน) ----------
+function weekLayout() { const n = SC.dates.length, pre = (dowOf(SC.dates[0]) + 6) % 7, post = (7 - (pre + n) % 7) % 7; return { n: n, pre: pre, post: post, total: pre + n + post }; }
+function gridCols(fnDay, fnPad) {
+  const L = weekLayout(); let o = '';
+  for (let i = 0; i < L.pre; i++) o += fnPad(i % 7);
+  SC.dates.forEach((d, j) => { o += fnDay(d, (L.pre + j) % 7); });
+  for (let i = 0; i < L.post; i++) o += fnPad((L.pre + L.n + i) % 7);
+  return o;
+}
+const wkc = i => i === 6 ? ' wkend' : '';
+const padTd = i => '<td class="pad' + wkc(i) + '"></td>', padTh = i => '<th class="pad' + wkc(i) + '"></th>';
+function weekHdr() {
+  const L = weekLayout(); let o = '<tr><th class="name wkh"></th>';
+  for (let w = 0; w < L.total / 7; w++) {
+    const a = Math.max(0, w * 7 - L.pre), b = Math.min(L.n - 1, w * 7 + 6 - L.pre), full = (b - a + 1) === 7;
+    o += '<th colspan="7" class="wkh wkend">สัปดาห์ที่ ' + (w + 1) + ' · ' + dmy(SC.dates[a]).slice(0, 5) + ' – ' + dmy(SC.dates[b]).slice(0, 5) + (full ? '' : ' (บางส่วน)') + '</th>';
+  }
+  return o + '</tr>';
+}
 function cellVal(id, d) { const k = id + '|' + d; return k in CH ? CH[k] : (SC.cells[k] || ''); }
 function renderGrid() {
   const sc = document.querySelector('.gridbox'), y = window.scrollY, sl = sc ? sc.scrollLeft : 0, st = sc ? sc.scrollTop : 0;
@@ -481,11 +508,11 @@ function renderGrid() {
 function renderGrid_() {
   const depts = Array.from(new Set(SC.emps.map(e => e.dept))).sort(), emps = SC.emps.filter(e => !DEPT || e.dept === DEPT);
   const n = Object.keys(CH).length;
-  const hdr = SC.dates.map(d => { const w = dowOf(d), h = SC.hol[d]; return '<th class="' + (h ? 'hol' : w === 0 ? 'sun' : '') + '" title="' + esc(h || '') + '" onclick="paintCol(\'' + d + '\')">' + +d.slice(8) + '<br>' + THDOW[w] + '</th>'; }).join('');
+  const hdr = gridCols((d, i) => { const w = dowOf(d), h = SC.hol[d]; return '<th class="' + (h ? 'hol' : w === 0 ? 'sun' : '') + wkc(i) + '" title="' + esc(h || '') + '" onclick="paintCol(\'' + d + '\')">' + +d.slice(8) + '<br>' + THDOW[w] + '</th>'; }, padTh);
   const rows = emps.map(e => '<tr><td class="name" onclick="paintRow(\'' + esc(e.id) + '\')">' + esc(e.name) + '<div class="sm mut">' + esc(e.dept) + ' · ' + esc(e.hours) + ' ชม.</div>' + offBadge(e) + '</td>' +
-    SC.dates.map(d => { const v = cellVal(e.id, d), k = e.id + '|' + d; return '<td id="c|' + esc(k) + '" class="c ' + (SC.hol[d] ? 'hol ' : '') + (v ? 'sh-' + (v === 'OFF' ? 'OFF' : /^[MAND]$/.test(v) ? v : 'x') : '') + (k in CH ? ' chg' : '') + '" onclick="paint(\'' + esc(e.id) + '\',\'' + d + '\')">' + shT(v) + '</td>'; }).join('') + '</tr>').join('');
-  const foot = '<tr><td class="name">ชั่วโมงรวม/วัน</td>' + SC.dates.map(d => '<td>' + (SC.coverage[d] ? SC.coverage[d].hours : '') + '</td>').join('') + '</tr><tr><td class="name">ครบ 24 ชม. (FO)</td>' + SC.dates.map(d => { const f = SC.fo24 && SC.fo24[d]; return '<td onclick="foDetail(\'' + d + '\')" style="cursor:pointer">' + (f && f.gaps.length ? '<span class="cov-bad">⚠</span>' : '<span class="cov-ok">✓</span>') + '</td>'; }).join('') + '</tr><tr><td class="name">ครบกะ?</td>' +
-    SC.dates.map(d => { const c = SC.coverage[d]; return '<td onclick="covDetail(\'' + d + '\')" style="cursor:pointer">' + (c && c.short.length ? '<span class="cov-bad">⚠' + c.short.length + '</span>' : '<span class="cov-ok">✓</span>') + '</td>'; }).join('') + '</tr>';
+    gridCols((d, i) => { const v = cellVal(e.id, d), k = e.id + '|' + d; return '<td id="c|' + esc(k) + '" class="c ' + (SC.hol[d] ? 'hol ' : '') + (v ? 'sh-' + (v === 'OFF' ? 'OFF' : /^[MAND]$/.test(v) ? v : 'x') : '') + (k in CH ? ' chg' : '') + wkc(i) + '" onclick="paint(\'' + esc(e.id) + '\',\'' + d + '\')">' + shT(v) + '</td>'; }, padTd) + '</tr>').join('');
+  const foot = '<tr><td class="name">ชั่วโมงรวม/วัน</td>' + gridCols((d, i) => '<td class="' + wkc(i) + '">' + (SC.coverage[d] ? SC.coverage[d].hours : '') + '</td>', padTd) + '</tr><tr><td class="name">ครบ 24 ชม. (FO)</td>' + gridCols((d, i) => { const f = SC.fo24 && SC.fo24[d]; return '<td class="' + wkc(i) + '" onclick="foDetail(\'' + d + '\')" style="cursor:pointer">' + (f && f.gaps.length ? '<span class="cov-bad">⚠</span>' : '<span class="cov-ok">✓</span>') + '</td>'; }, padTd) + '</tr><tr><td class="name">ครบกะ?</td>' +
+    gridCols((d, i) => { const c = SC.coverage[d]; return '<td class="' + wkc(i) + '" onclick="covDetail(\'' + d + '\')" style="cursor:pointer">' + (c && c.short.length ? '<span class="cov-bad">⚠' + c.short.length + '</span>' : '<span class="cov-ok">✓</span>') + '</td>'; }, padTd) + '</tr>';
   $('#view').innerHTML = '<div class="card"><h2>ตารางงานรายเดือน</h2><div class="row">' + '<div>' + monthInput('mm', SC.month, 'viewSchedule(this.value)') + '</div>' +
     '<div><select id="dp" onchange="DEPT=this.value;renderGrid()"><option value="">ทุกแผนก</option>' + depts.map(d => '<option ' + (d === DEPT ? 'selected' : '') + '>' + esc(d) + '</option>').join('') + '</select></div>' +
     '<div><button onclick="copyForm()">คัดลอกจากเดือนก่อน</button></div>' + (isAdmin() ? '<div><button onclick="printSchedule()">บันทึกเป็น PDF (หน้าเดียว)</button></div><div><button onclick="notifySched(this)">แจ้งพนักงานทาง LINE</button></div>' : '') + '</div>' +
@@ -495,7 +522,7 @@ function renderGrid_() {
     '<button data-b="" class="' + (BR === '' ? 'on' : '') + '" style="flex:0 0 auto" onclick="setBrush(\'\')">ล้างช่อง</button></div>' +
     '<p class="sm mut">ช่อง "หยุด" = วันหยุดของพนักงานคนนั้น (รายเดือนควรได้ ≥ สัปดาห์ละ 1 วัน เลื่อนข้ามสัปดาห์ได้ เช่น สัปดาห์นี้ไม่หยุด สัปดาห์หน้าหยุด 2 วัน) · ช่องว่าง = ยังไม่ได้จัด · หัวคอลัมน์สีแดง = วันหยุดนักขัตฤกษ์ (จัดกะวันนั้น = ทำงานวันหยุด) · วันที่มีการลงเวลาแล้วแก้ไม่ได้</p>' +
     '<div class="row" style="align-items:end"><div><label>วันหยุดนักขัตฤกษ์ (เพิ่ม/ลบ)</label><input type="date" id="hd"></div><div><label>ชื่อวันหยุด (เว้นว่าง = ลบ)</label><input id="hn" placeholder="เช่น วันสงกรานต์"></div><div><button onclick="holidaySave(this)">บันทึกวันหยุด</button></div></div>' +
-    foWarn() + shLegend() + '<div class="scroll gridbox"><table class="grid"><tr><th class="name">พนักงาน</th>' + hdr + '</tr>' + rows + foot + '</table></div>' +
+    foWarn() + shLegend() + '<div class="scroll gridbox"><table class="grid">' + weekHdr() + '<tr><th class="name">พนักงาน</th>' + hdr + '</tr>' + rows + foot + '</table></div>' +
     '<p><button class="pri" id="sbtn" onclick="saveGrid()" ' + (n ? '' : 'disabled') + '>บันทึกการเปลี่ยนแปลง (' + n + ')</button> <button id="cbtn" onclick="CH={};renderGrid()" ' + (n ? '' : 'disabled') + '>ยกเลิกที่ยังไม่บันทึก</button></p><div id="cdet"></div></div>';
 }
 function foWarn() {
@@ -560,12 +587,12 @@ function renderMySchedule() {
   const mine = SC.dates.filter(d => SC.cells[ME.id + '|' + d] && SC.cells[ME.id + '|' + d] !== 'OFF');
   const sh = {}; SC.shifts.forEach(s => sh[s.code] = s);
   const meRow = SC.emps.find(e => e.id === ME.id), others = SC.emps.filter(e => e.id !== ME.id).sort((x, y) => x.name < y.name ? -1 : 1), list = (meRow ? [meRow] : []).concat(others);
-  const hdr = SC.dates.map(d => { const w = dowOf(d), hh = SC.hol[d]; return '<th class="' + (hh ? 'hol' : w === 0 ? 'sun' : '') + '" title="' + esc(hh || '') + '">' + +d.slice(8) + '<br>' + THDOW[w] + '</th>'; }).join('');
+  const hdr = gridCols((d, i) => { const w = dowOf(d), hh = SC.hol[d]; return '<th class="' + (hh ? 'hol' : w === 0 ? 'sun' : '') + wkc(i) + '" title="' + esc(hh || '') + '">' + +d.slice(8) + '<br>' + THDOW[w] + '</th>'; }, padTh);
   const rows = list.map(e => '<tr><td class="name"' + (e.id === ME.id ? ' style="font-weight:700"' : '') + '>' + esc(e.name) + (e.id === ME.id ? ' (ฉัน)' : '') + '</td>' +
-    SC.dates.map(d => { const v = SC.cells[e.id + '|' + d] || ''; return '<td class="c ' + (SC.hol[d] ? 'hol ' : '') + (v ? 'sh-' + (v === 'OFF' ? 'OFF' : /^[MAND]$/.test(v) ? v : 'x') : '') + '" style="cursor:default">' + shT(v) + '</td>'; }).join('') + '</tr>').join('');
+    gridCols((d, i) => { const v = SC.cells[e.id + '|' + d] || ''; return '<td class="c ' + (SC.hol[d] ? 'hol ' : '') + (v ? 'sh-' + (v === 'OFF' ? 'OFF' : /^[MAND]$/.test(v) ? v : 'x') : '') + wkc(i) + '" style="cursor:default">' + shT(v) + '</td>'; }, padTd) + '</tr>').join('');
   $('#view').innerHTML = '<div class="card"><h2>ตารางงานของฉัน</h2>' + monthInput('mm', SC.month, 'viewSchedule(this.value)') + '<p>รวม ' + mine.length + ' กะ · ' + (meRow ? meRow.hours : 0) + ' ชม./เดือน</p>' +
     '<div class="scroll"><table><tr><th>วันที่</th><th>วัน</th><th>รหัสกะ</th></tr>' + SC.dates.map(d => { const c = SC.cells[ME.id + '|' + d], s = sh[c]; return '<tr><td>' + esc(dmy(d)) + (SC.hol[d] ? ' <span class="chip">' + esc(SC.hol[d]) + '</span>' : '') + '</td><td>' + THDOW[dowOf(d)] + '</td><td>' + (c === 'OFF' ? '<b class="cov-bad">OFF</b>' : s ? '<b>' + esc(s.code) + '</b>' : '<span class="mut">-</span>') + '</td></tr>'; }).join('') + '</table></div></div>' +
-    '<div class="card"><h2>ตารางงานแผนก' + (ME.dept ? ' ' + esc(ME.dept) : '') + '</h2><p class="sm mut">เห็นเฉพาะรหัสกะของเพื่อนร่วมแผนก</p>' + shLegend(false) + '<div class="scroll gridbox"><table class="grid"><tr><th class="name">พนักงาน</th>' + hdr + '</tr>' + rows + '</table></div></div>';
+    '<div class="card"><h2>ตารางงานแผนก' + (ME.dept ? ' ' + esc(ME.dept) : '') + '</h2><p class="sm mut">เห็นเฉพาะรหัสกะของเพื่อนร่วมแผนก</p>' + shLegend(false) + '<div class="scroll gridbox"><table class="grid">' + weekHdr() + '<tr><th class="name">พนักงาน</th>' + hdr + '</tr>' + rows + '</table></div></div>';
 }
 
 // ---------- คำขอ ----------
